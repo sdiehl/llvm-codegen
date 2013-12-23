@@ -1,7 +1,6 @@
-dist
-cabal-dev
+*.sw[po]
 *.o
-*.hi
-*.chi
-*.chs.h
-.virthualenv
+*.so
+cabal.sandbox.config
+.cabal-sandbox
+dist/
