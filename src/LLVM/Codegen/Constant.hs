@@ -1,8 +1,9 @@
 module LLVM.Codegen.Constant (
   ci1, ci8, ci16, ci32, ci64,
   cf32, cf64,
-  cnull,
   cfloat,
+  cdouble,
+  cnull,
   cundef,
   cstruct,
   carray,
@@ -22,17 +23,16 @@ ci16 = C.Int 8 . fromIntegral
 ci32 = C.Int 32 . fromIntegral
 ci64 = C.Int 64 . fromIntegral
 
-cf32 :: Float -> C.Constant
+cf32, cfloat :: Float -> C.Constant
 cf32  = C.Float . F.Single
+cfloat = cf32
 
-cf64 :: Double -> C.Constant
+cf64, cdouble :: Double -> C.Constant
 cf64  = C.Float . F.Double
+cdouble = cf64
 
 cnull :: Type -> C.Constant
 cnull ty = C.Null ty
-
-cfloat :: Double -> C.Constant
-cfloat x = C.Float ( F.Double x )
 
 cundef :: Type -> C.Constant
 cundef = C.Undef
