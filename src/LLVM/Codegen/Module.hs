@@ -7,6 +7,7 @@ module LLVM.Codegen.Module (
 
   addDefn,
   define,
+  typedef,
   external,
 ) where
 
@@ -14,7 +15,8 @@ import Control.Applicative
 import Control.Monad.State
 
 import LLVM.General.AST
-import LLVM.General.AST.Global
+import LLVM.General.AST.Global as G
+import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST as AST
 
 
@@ -39,6 +41,18 @@ define retty label argtys body = addDefn $
   , parameters  = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
   , returnType  = retty
   , basicBlocks = body
+  }
+
+typedef :: String -> Type -> LLVM ()
+typedef name ty = addDefn $
+  TypeDefinition (Name name) Nothing
+
+global :: String -> Type -> C.Constant -> LLVM ()
+global name ty val = addDefn $
+  GlobalDefinition $ globalVariableDefaults {
+    G.name        = Name name
+  , G.type'       = ty
+  , G.initializer = (Just val)
   }
 
 external ::  Type -> String -> [(Type, Name)] -> [BasicBlock] -> LLVM ()

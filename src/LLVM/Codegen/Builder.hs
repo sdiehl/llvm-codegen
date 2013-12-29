@@ -3,13 +3,17 @@
 module LLVM.Codegen.Builder (
   instr,
   terminator,
+  addBlock,
+  setBlock,
+  entryBlockName,
+
   Codegen,
+  execCodegen,
 ) where
 
 import LLVM.Codegen.NameSupply
 
 import Data.Word
-import Data.String
 import Data.List
 import Data.Function
 import qualified Data.Map as Map
@@ -18,13 +22,7 @@ import Control.Monad.State
 import Control.Applicative
 
 import LLVM.General.AST
-import LLVM.General.AST.Global
-import qualified LLVM.General.AST as AST
-
 import qualified LLVM.General.AST.Constant as C
-import qualified LLVM.General.AST.Attribute as A
-import qualified LLVM.General.AST.CallingConvention as CC
-import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
 type SymbolTable = [(String, Operand)]
 
@@ -47,9 +45,6 @@ data BlockState
 
 newtype Codegen a = Codegen { runCodegen :: State CodegenState a }
   deriving (Functor, Applicative, Monad, MonadState CodegenState )
-
-toArgs :: [Operand] -> [(Operand, [A.ParameterAttribute])]
-toArgs = map (\x -> (x, []))
 
 sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
 sortBlocks = sortBy (compare `on` (idx . snd))
@@ -81,6 +76,7 @@ fresh = do
   modify $ \s -> s { count = 1 + i }
   return $ i + 1
 
+-- | Return the current basic block
 current :: Codegen BlockState
 current = do
   c <- gets currentBlock
@@ -89,6 +85,7 @@ current = do
     Just x -> return x
     Nothing -> error $ "No such block: " ++ show c
 
+-- | Append an instruction to current basic block
 instr :: Instruction -> Codegen (Operand)
 instr ins = do
   n <- fresh
@@ -98,6 +95,7 @@ instr ins = do
   modifyBlock (blk { stack = i ++ [ref := ins] } )
   return $ local ref
 
+-- | Set the terminator to current basic block
 terminator :: Named Terminator -> Codegen (Named Terminator)
 terminator trm = do
   blk <- current
@@ -111,7 +109,6 @@ named iname m = m >> do
       (_ := x) = last (stack blk)
   modifyBlock $ blk { stack = init (stack blk) ++ [b := x] }
   return $ local b
-
 
 -------------------------------------------------------------------------------
 -- References
@@ -130,9 +127,7 @@ externf = ConstantOperand . C.GlobalReference
 -- Block Stack
 -------------------------------------------------------------------------------
 
-entry :: Codegen Name
-entry = gets currentBlock
-
+-- | Append a new named basic block to a function
 addBlock :: String -> Codegen Name
 addBlock bname = do
   bls <- gets blocks
@@ -146,13 +141,11 @@ addBlock bname = do
                    }
   return (Name qname)
 
+-- | Set the current basic block
 setBlock :: Name -> Codegen Name
 setBlock bname = do
   modify $ \s -> s { currentBlock = bname }
   return bname
-
-getBlock :: Codegen Name
-getBlock = gets currentBlock
 
 modifyBlock :: BlockState -> Codegen ()
 modifyBlock new = do

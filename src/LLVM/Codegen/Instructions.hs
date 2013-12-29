@@ -1,18 +1,25 @@
 module LLVM.Codegen.Instructions (
+  and,
+  or,
+  xor,
+
+  add,
+  sub,
+  mul,
+  udiv,
+  sdiv,
+  urem,
+  srem,
+  shl,
+  lshr,
+  ashr,
+
 ) where
 
+import Prelude hiding (and, or)
+
 import Data.Word
-import Data.String
-import Data.List
-import Data.Function
-import qualified Data.Map as Map
-
-import Control.Monad.State
-import Control.Applicative
-
 import LLVM.General.AST
-import LLVM.General.AST.Global
-import LLVM.General.AST.Instruction
 
 import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST.Attribute as A
@@ -29,12 +36,15 @@ import LLVM.Codegen.Builder (instr, terminator, Codegen)
 -- Logical
 -------------------------------------------------------------------------------
 
+-- | Logical and
 and ::  Operand -> Operand -> Codegen Operand
 and a b = instr $ And a b []
 
+-- | Logical or
 or ::  Operand -> Operand -> Codegen Operand
 or a b = instr $ Or a b []
 
+-- | Logical xor
 xor ::  Operand -> Operand -> Codegen Operand
 xor a b = instr $ Xor a b []
 
@@ -42,15 +52,15 @@ xor a b = instr $ Xor a b []
 -- Integer Arithmetic
 -------------------------------------------------------------------------------
 
--- | Floating point addition
+-- | Integer addition
 add :: Operand -> Operand -> Codegen Operand
 add a b = instr $ Add False False a b []
 
--- | Floating point subtraction
+-- | Integer subtraction
 sub :: Operand -> Operand -> Codegen Operand
 sub a b = instr $ Sub False False a b []
 
--- | Floating point multiplication
+-- | Integer multiplication
 mul :: Operand -> Operand -> Codegen Operand
 mul a b = instr $ Mul False False a b []
 
