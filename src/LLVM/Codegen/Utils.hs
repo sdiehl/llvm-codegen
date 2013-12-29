@@ -1,4 +1,9 @@
-module LLVM.Codegen.Utils where
+module LLVM.Codegen.Utils (
+  bitsize,
+  ptrsize,
+  getCC,
+  getLD
+) where
 
 import Data.Maybe
 import Data.Bits

@@ -7,6 +7,7 @@ import qualified Data.Map as Map
 
 type Names = Map.Map String Int
 
+-- | Returns either a unique name or a mangled name within the given name supply.
 uniqueName :: String -> Names -> (String, Names)
 uniqueName nm ns =
   case Map.lookup nm ns of
