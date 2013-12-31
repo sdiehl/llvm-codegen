@@ -140,11 +140,11 @@ getvar var = do
 -------------------------------------------------------------------------------
 
 -- | Reference to a local value
-local ::  Name -> Operand
+local :: Name -> Operand
 local = LocalReference
 
 -- | Reference to a local value
-global ::  Name -> C.Constant
+global :: Name -> C.Constant
 global = C.GlobalReference
 
 -- | Reference to a function

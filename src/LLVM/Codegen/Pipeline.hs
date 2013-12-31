@@ -30,15 +30,18 @@ type Stage = Ctx -> IO (Either String Ctx)
 type Pipeline = [Stage]
 
 data Settings = Settings
-    { opt :: Word
+    { opt :: Word             -- ^ Optimization level
+    , inlineThreshold :: Int  -- ^ Inliner threshold
     } deriving (Eq, Show)
 
 defaultSettings :: Settings
-defaultSettings = Settings { opt = 3 }
+defaultSettings = Settings { opt = 3, inlineThreshold = 1000 }
 
+-- Compose stages into a composite Stage.
 compose :: Stage -> Stage -> Stage
 compose a b x = a x >>= either (return . Left) b
 
+-- | Run the verififier on the IR.
 verifyPass :: Stage
 verifyPass (ctx, m, settings) = do
   putStrLn "Verifying Module..."
@@ -48,6 +51,7 @@ verifyPass (ctx, m, settings) = do
       Left err -> throwError (strMsg $ "No verify: " ++ err)
       Right x -> return $ Right (ctx, m, settings)
 
+-- | Dump the module IR to stdout.
 showPass :: Stage
 showPass (ctx, m, settings) = do
   putStrLn "Showing Module..."
@@ -55,6 +59,7 @@ showPass (ctx, m, settings) = do
   putStrLn s
   return $ Right (ctx, m, settings)
 
+-- | Run the curated pass with the 'opt' level specified in the Settings.
 optimizePass :: Stage
 optimizePass (ctx, m, settings) = do
   putStrLn "Running optimizer..."
@@ -69,6 +74,7 @@ runPipeline :: Pipeline -> Settings -> AST.Module -> IO (Either String AST.Modul
 runPipeline pline settings ast = do
   withContext $ \ctx ->
     runErrorT $ withModuleFromAST ctx ast $ \m -> do
+      -- fold the the list of Stages into a single function, sequentially from left to right
       let res = foldl1 compose pline
       final <- res (ctx, m, settings)
       case final of
