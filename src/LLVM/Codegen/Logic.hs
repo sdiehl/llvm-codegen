@@ -1,10 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Rank2Types #-}
 
 {-# OPTIONS_GHC -fno-warn-unused-do-bind#-}
 
 module LLVM.Codegen.Logic (
   def,
   var,
+  constant,
   ifelse,
   while,
   proj,
@@ -15,6 +17,8 @@ import Control.Monad (forM )
 
 import LLVM.Codegen.Builder
 import LLVM.Codegen.Module
+import LLVM.Codegen.Types
+import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
 
 import LLVM.General.AST (Name(..), Type, Operand)
@@ -38,7 +42,22 @@ def name retty argtys m = do
       m >>= ret
 
 -- | Construct a variable
-var ty val name = undefined
+var :: Type -> Operand -> String -> Codegen Operand
+var ty val name = do
+  ref <- alloca ty
+  store ref val
+  setvar name ref
+  return ref
+
+{-constant :: Type -> (forall a. Num a => a) -> Operand-}
+constant ty val
+  | ty == i1  = cons $ ci1  $ fromIntegral val
+  | ty == i8  = cons $ ci8  $ fromIntegral val
+  | ty == i16 = cons $ ci16 $ fromIntegral val
+  | ty == i32 = cons $ ci32 $ fromIntegral val
+  | ty == i64 = cons $ ci64 $ fromIntegral val
+  | ty == f32 = cons $ cf32 $ fromIntegral val
+  | ty == f64 = cons $ cf32 $ fromIntegral val
 
 -- | Construction a if/then/else statement
 ifelse cond tr fl = undefined

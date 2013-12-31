@@ -19,8 +19,8 @@ import LLVM.Codegen.Pipeline
 test_simple :: LLVM ()
 test_simple = do
   def "foo" i32 [(i32, "x")] $ do
-    let a = cons $ ci32 1
-    let b = cons $ ci32 1000
+    let a = constant i32 1
+    let b = constant i64 1000
     add a b
 
 test_multiple :: LLVM ()
