@@ -4,7 +4,7 @@ module LLVM.Codegen.Types (
   void,
   pointer,
   array,
-  vec,
+  vector,
   struct,
   fun,
   sizeOf,
@@ -16,8 +16,8 @@ module LLVM.Codegen.Types (
 
 
 import Data.Word
-import LLVM.General.AST
 import LLVM.Codegen.Utils
+import LLVM.General.AST hiding (vector)
 
 import LLVM.General.AST.AddrSpace
 import qualified LLVM.General.AST.Constant as C
@@ -53,8 +53,8 @@ array :: Word64 -> Type -> Type
 array elements ty = ArrayType elements ty
 
 -- | Vector type constructor
-vec :: Word32 -> Type -> Type
-vec width ty = VectorType width ty
+vector :: Word32 -> Type -> Type
+vector width ty = VectorType width ty
 
 -- | Struct type constructor
 struct :: [Type] -> Type

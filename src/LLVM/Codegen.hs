@@ -1,10 +1,9 @@
 module LLVM.Codegen (
-  module LLVM.Codegen.Instructions,
   module LLVM.Codegen.Module,
-  module LLVM.Codegen.Types,
+  module LLVM.Codegen.Logic,
   module LLVM.Codegen.Constant,
-  module LLVM.Codegen.Builder,
-  module LLVM.Codegen.Logic
+  module LLVM.Codegen.Instructions,
+  module LLVM.Codegen.Builder
 ) where
 
 -- Internal

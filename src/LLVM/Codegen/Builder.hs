@@ -7,6 +7,7 @@ module LLVM.Codegen.Builder (
   setBlock,
   entryBlockName,
   createBlocks,
+  getBlock,
 
   local,
   global,
@@ -123,11 +124,13 @@ named iname m = m >> do
 -- Symbol Table
 -------------------------------------------------------------------------------
 
+-- | Set a named value in the symbol table.
 setvar :: String -> Operand -> Codegen ()
 setvar var x = do
   lcls <- gets symtab
   modify $ \s -> s { symtab = [(var, x)] ++ lcls }
 
+-- | Retrieve a named value from the symbol table.
 getvar :: String -> Codegen Operand
 getvar var = do
   syms <- gets symtab
@@ -174,6 +177,9 @@ setBlock :: Name -> Codegen Name
 setBlock bname = do
   modify $ \s -> s { currentBlock = bname }
   return bname
+
+getBlock :: Codegen Name
+getBlock = gets currentBlock
 
 modifyBlock :: BlockState -> Codegen ()
 modifyBlock new = do

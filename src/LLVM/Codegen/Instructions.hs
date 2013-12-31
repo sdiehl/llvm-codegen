@@ -21,8 +21,11 @@ module LLVM.Codegen.Instructions (
 
   cons,
 
+  br,
+  cbr,
   ret,
   ret_,
+  phi,
 
   unreachable
 

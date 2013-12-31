@@ -18,7 +18,7 @@ import qualified LLVM.General.AST.Constant as C
 ci1, ci8, ci16, ci32, ci64 :: (Integral a) => a -> C.Constant
 ci1  = C.Int 1 . fromIntegral
 ci8  = C.Int 8 . fromIntegral
-ci16 = C.Int 8 . fromIntegral
+ci16 = C.Int 16 . fromIntegral
 ci32 = C.Int 32 . fromIntegral
 ci64 = C.Int 64 . fromIntegral
 
@@ -45,7 +45,6 @@ carray ty values = C.Array ty values
 -- | Conversion between Haskell numeric values and LLVM constants
 class Constant a where
   toConstant :: a -> C.Constant
-  -- fromConstant :: C.Constant -> a
 
 instance Constant Bool where
   toConstant False = ci1 (0 :: Int)
@@ -59,8 +58,3 @@ instance Constant Float where
 
 instance Constant Double where
   toConstant = cf64
-
-{-
-instance Constant a => Constant [a] where
-  toConstant = cf64
--}

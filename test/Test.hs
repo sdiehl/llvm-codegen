@@ -5,10 +5,7 @@ import Test.Tasty.HUnit
 import Test.Tasty.Golden
 
 import LLVM.Codegen
-import LLVM.Codegen.Module
-import LLVM.Codegen.Logic
 import LLVM.Codegen.Types
-import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
 import LLVM.Codegen.Pipeline
 

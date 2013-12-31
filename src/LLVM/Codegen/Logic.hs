@@ -7,7 +7,7 @@ module LLVM.Codegen.Logic (
   def,
   var,
   constant,
-  ifelse,
+  ife,
   while,
   proj,
   caseof
@@ -60,7 +60,26 @@ constant ty val
   | ty == f64 = cons $ cf32 $ fromIntegral val
 
 -- | Construction a if/then/else statement
-ifelse cond tr fl = undefined
+ife :: Operand -> Codegen Operand -> Codegen Operand -> Codegen Operand
+ife cond tr fl = do
+  ifthen <- addBlock "if.then"
+  ifelse <- addBlock "if.else"
+  ifexit <- addBlock "if.exit"
+
+  cbr cond ifthen ifelse
+
+  setBlock ifthen
+  trval <- tr
+  br ifexit
+  ifthen <- getBlock
+
+  setBlock ifelse
+  flval <- fl
+  br ifexit
+  ifelse <- getBlock
+
+  setBlock ifexit
+  phi double [(trval, ifthen), (flval, ifelse)]
 
 -- | Construction a while statement
 while cond body = undefined
