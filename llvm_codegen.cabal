@@ -51,4 +51,6 @@ Test-Suite test
     , llvm-general      >= 3.3.8.2
     , llvm-general-pure >= 3.3.8.2
     , llvm-codegen      == 0.1.0.0
-    , HUnit >= 1.2.4.2
+    , tasty
+    , tasty-golden
+    , tasty-hunit

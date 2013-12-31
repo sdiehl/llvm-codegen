@@ -1,10 +1,12 @@
 module LLVM.Codegen.Pipeline (
-  {-runJIT,-}
+  Pipeline,
+  Stage,
   runPipeline,
-  myPipeline,
+
   Settings(..),
   defaultSettings,
 
+  optimizePass,
   verifyPass,
   showPass
 ) where
@@ -60,9 +62,6 @@ optimizePass (ctx, m, settings) = do
   withPassManager passes $ \pm -> do
     runPassManager pm m
   return $ Right (ctx, m, settings)
-
-myPipeline :: Pipeline
-myPipeline = [verifyPass, showPass, optimizePass, showPass]
 
 -- | Run a AST through the compiler pipeline executing arbitrary effects specified by the pipeline, and
 -- finally either returning the resulting AST or the CompilerError.
