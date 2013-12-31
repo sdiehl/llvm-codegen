@@ -14,10 +14,14 @@ module LLVM.Codegen.Instructions (
   lshr,
   ashr,
 
+  call,
   alloca,
   store,
   load,
   gep,
+
+  fcmp,
+  icmp,
 
   cons,
 

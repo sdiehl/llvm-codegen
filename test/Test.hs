@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Test.Tasty
@@ -8,6 +10,8 @@ import LLVM.Codegen
 import LLVM.Codegen.Types
 import LLVM.Codegen.Instructions
 import LLVM.Codegen.Pipeline
+
+import LLVM.General.AST (Operand)
 
 -------------------------------------------------------------------------------
 -- Cases
@@ -27,8 +31,23 @@ test_multiple = do
     res <- load x
     return $ res
 
-  def "foo" i32 [(i32, "x")] $ do
+  def "bar" i32 [(i32, "x")] $ do
     return $ cons $ ci32 1000
+
+test_for :: LLVM ()
+test_for = do
+  foo <- external i32 "foo" []
+
+  def "forloop" i32 [] $ do
+    for i inc false $ do
+      for j inc false $ do
+        call (fn foo) []
+    return zero
+
+  where
+    i = var i32 zero "i"
+    j = var i32 zero "j"
+    inc = return one
 
 -------------------------------------------------------------------------------
 -- Test Runner
@@ -54,4 +73,5 @@ unitTests = testGroup "Pipeline tests"
   [
     testCase "test_simple" $ compile test_simple
   , testCase "test_multiple" $ compile test_multiple
+  , testCase "test_for" $ compile test_for
   ]

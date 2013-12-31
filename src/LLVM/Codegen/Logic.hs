@@ -8,9 +8,17 @@ module LLVM.Codegen.Logic (
   var,
   constant,
   ife,
+  for,
   while,
+  range,
   proj,
-  caseof
+  caseof,
+
+  true,
+  false,
+
+  one,
+  zero
 ) where
 
 import Control.Monad (forM )
@@ -21,7 +29,25 @@ import LLVM.Codegen.Types
 import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
 
+import qualified LLVM.General.AST.IntegerPredicate as IP
+
 import LLVM.General.AST (Name(..), Type, Operand)
+
+-------------------------------------------------------------------------------
+-- Constants
+-------------------------------------------------------------------------------
+
+false :: Codegen Operand
+false = return $ constant i1 0
+
+true :: Codegen Operand
+true = return $ constant i1 1
+
+zero :: Operand
+zero = constant i32 0
+
+one :: Operand
+one = constant i32 1
 
 -------------------------------------------------------------------------------
 -- Function
@@ -81,11 +107,81 @@ ife cond tr fl = do
   setBlock ifexit
   phi double [(trval, ifthen), (flval, ifelse)]
 
--- | Construction a while statement
-while cond body = undefined
+-- | Construction a for statement
+for :: Codegen Operand -> Codegen Operand -> Codegen Operand -> Codegen a -> Codegen ()
+for ivar inc cond body = do
+  forcond <- addBlock "for.cond"
+  forloop <- addBlock "for.loop"
+  forexit <- addBlock "for.exit"
+
+  i <- ivar
+  n <- inc
+  br forcond
+
+  setBlock forcond
+  test <- cond
+  cbr test forloop forexit
+
+  setBlock forloop
+  body
+  ival <- load i
+  iinc <- add ival n
+  store i iinc
+  br forcond
+
+  setBlock forexit
+  return ()
+
+-- | Construction for range statement
+range :: String -> Codegen Operand -> Codegen Operand -> Codegen a -> Codegen ()
+range ivar start stop body = do
+  forcond <- addBlock "for.cond"
+  forloop <- addBlock "for.loop"
+  forexit <- addBlock "for.exit"
+
+  lower <- start
+  upper <- stop
+  i <- var i32 lower ivar
+  br forcond
+
+  setBlock forcond
+  test <- icmp IP.SLT i upper
+  cbr test forloop forexit
+
+  setBlock forloop
+  body
+  ival <- load i
+  iinc <- add ival one
+  store i iinc
+  br forcond
+
+  setBlock forexit
+  return ()
+
+while :: Codegen Operand -> Codegen a -> Codegen ()
+while cond body = do
+  forcond <- addBlock "while.cond"
+  forloop <- addBlock "while.loop"
+  forexit <- addBlock "while.exit"
+
+  br forcond
+
+  setBlock forcond
+  test <- cond
+  cbr test forloop forexit
+
+  setBlock forloop
+  body
+  br forcond
+
+  setBlock forexit
+  return ()
 
 -- | Construction a record projection statement
 proj struct field = undefined
 
 -- | Construction a case statement
 caseof val brs = undefined
+
+-- | Construction of a sequence statement
+seq a b = a >> b

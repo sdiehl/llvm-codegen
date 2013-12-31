@@ -61,11 +61,13 @@ globaldef nm ty val = addDefn $
   , G.initializer = (Just val)
   }
 
-external ::  Type -> String -> [(Type, Name)] -> [BasicBlock] -> LLVM ()
-external retty label argtys body = addDefn $
-  GlobalDefinition $ functionDefaults {
-    name        = Name label
-  , parameters  = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
-  , returnType  = retty
-  , basicBlocks = body
-  }
+external ::  Type -> String -> [(Type, Name)] -> LLVM Name
+external retty label argtys = do
+  addDefn $
+    GlobalDefinition $ functionDefaults {
+      name        = Name label
+    , parameters  = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
+    , returnType  = retty
+    , basicBlocks = []
+    }
+  return (Name label)
