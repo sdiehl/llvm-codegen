@@ -3,7 +3,8 @@ module LLVM.Codegen (
   module LLVM.Codegen.Module,
   module LLVM.Codegen.Types,
   module LLVM.Codegen.Constant,
-  module LLVM.Codegen.Builder
+  module LLVM.Codegen.Builder,
+  module LLVM.Codegen.Logic
 ) where
 
 -- Internal
@@ -17,3 +18,4 @@ import LLVM.Codegen.Logic
 import LLVM.Codegen.Types
 import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
+import LLVM.Codegen.Pipeline

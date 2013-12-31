@@ -2,7 +2,14 @@
 
 {-# OPTIONS_GHC -fno-warn-unused-do-bind#-}
 
-module LLVM.Codegen.Logic where
+module LLVM.Codegen.Logic (
+  def,
+  var,
+  ifelse,
+  while,
+  proj,
+  caseof
+) where
 
 import Control.Monad (forM )
 
@@ -33,9 +40,14 @@ def name retty argtys m = do
 -- | Construct a variable
 var ty val name = undefined
 
--- | Construction
+-- | Construction a if/then/else statement
 ifelse cond tr fl = undefined
 
+-- | Construction a while statement
 while cond body = undefined
 
+-- | Construction a record projection statement
 proj struct field = undefined
+
+-- | Construction a case statement
+caseof val brs = undefined

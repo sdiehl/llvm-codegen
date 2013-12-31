@@ -19,8 +19,12 @@ module LLVM.Codegen.Instructions (
   load,
   gep,
 
+  cons,
+
   ret,
-  ret_
+  ret_,
+
+  unreachable
 
 ) where
 
