@@ -8,6 +8,8 @@ module LLVM.Codegen.Module (
   addDefn,
   define,
   typedef,
+  opaquetypedef,
+  globaldef,
   external,
 ) where
 
@@ -34,23 +36,27 @@ addDefn d = do
   defs <- gets moduleDefinitions
   modify $ \s -> s { moduleDefinitions = defs ++ [d] }
 
-define ::  Type -> String -> [(Type, Name)] -> [BasicBlock] -> LLVM ()
+define ::  Type -> String -> [(Type, String)] -> [BasicBlock] -> LLVM ()
 define retty label argtys body = addDefn $
   GlobalDefinition $ functionDefaults {
     name        = Name label
-  , parameters  = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
+  , parameters  = ([Parameter ty (Name nm) [] | (ty, nm) <- argtys], False)
   , returnType  = retty
   , basicBlocks = body
   }
 
 typedef :: String -> Type -> LLVM ()
-typedef name ty = addDefn $
-  TypeDefinition (Name name) Nothing
+typedef nm ty = addDefn $
+  TypeDefinition (Name nm) (Just ty)
 
-global :: String -> Type -> C.Constant -> LLVM ()
-global name ty val = addDefn $
+opaquetypedef :: String -> LLVM ()
+opaquetypedef nm = addDefn $
+  TypeDefinition (Name nm) Nothing
+
+globaldef :: String -> Type -> C.Constant -> LLVM ()
+globaldef nm ty val = addDefn $
   GlobalDefinition $ globalVariableDefaults {
-    G.name        = Name name
+    G.name        = Name nm
   , G.type'       = ty
   , G.initializer = (Just val)
   }

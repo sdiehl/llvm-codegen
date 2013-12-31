@@ -14,6 +14,14 @@ module LLVM.Codegen.Instructions (
   lshr,
   ashr,
 
+  alloca,
+  store,
+  load,
+  gep,
+
+  ret,
+  ret_
+
 ) where
 
 import Prelude hiding (and, or)

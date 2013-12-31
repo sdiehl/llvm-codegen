@@ -6,6 +6,14 @@ module LLVM.Codegen.Builder (
   addBlock,
   setBlock,
   entryBlockName,
+  createBlocks,
+
+  local,
+  global,
+  fn,
+
+  getvar,
+  setvar,
 
   Codegen,
   execCodegen,
@@ -102,6 +110,7 @@ terminator trm = do
   modifyBlock (blk { term = Just trm })
   return trm
 
+-- | Explictly set the llvm variable name /%foo/ instead of using a default unnamed variable.
 named :: String -> Codegen a -> Codegen Operand
 named iname m = m >> do
   blk <- current
@@ -111,17 +120,36 @@ named iname m = m >> do
   return $ local b
 
 -------------------------------------------------------------------------------
+-- Symbol Table
+-------------------------------------------------------------------------------
+
+setvar :: String -> Operand -> Codegen ()
+setvar var x = do
+  lcls <- gets symtab
+  modify $ \s -> s { symtab = [(var, x)] ++ lcls }
+
+getvar :: String -> Codegen Operand
+getvar var = do
+  syms <- gets symtab
+  case lookup var syms of
+    Just x  -> return x
+    Nothing -> error $ "Local variable not in scope: " ++ show var
+
+-------------------------------------------------------------------------------
 -- References
 -------------------------------------------------------------------------------
 
+-- | Reference to a local value
 local ::  Name -> Operand
 local = LocalReference
 
+-- | Reference to a local value
 global ::  Name -> C.Constant
 global = C.GlobalReference
 
-externf :: Name -> Operand
-externf = ConstantOperand . C.GlobalReference
+-- | Reference to a function
+fn :: Name -> Operand
+fn = ConstantOperand . C.GlobalReference
 
 -------------------------------------------------------------------------------
 -- Block Stack

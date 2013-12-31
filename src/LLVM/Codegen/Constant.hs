@@ -12,7 +12,6 @@ module LLVM.Codegen.Constant (
 ) where
 
 import LLVM.General.AST
-
 import qualified LLVM.General.AST.Float as F
 import qualified LLVM.General.AST.Constant as C
 

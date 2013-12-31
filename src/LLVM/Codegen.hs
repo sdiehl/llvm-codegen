@@ -10,9 +10,10 @@ module LLVM.Codegen (
 import LLVM.Codegen.Utils
 import LLVM.Codegen.NameSupply
 import LLVM.Codegen.Builder
+import LLVM.Codegen.Module
 
 -- External
-import LLVM.Codegen.Module
+import LLVM.Codegen.Logic
 import LLVM.Codegen.Types
 import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
