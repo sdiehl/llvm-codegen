@@ -18,3 +18,4 @@ import LLVM.Codegen.Types
 import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
 import LLVM.Codegen.Pipeline
+import LLVM.Codegen.Structure

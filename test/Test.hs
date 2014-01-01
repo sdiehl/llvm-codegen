@@ -10,6 +10,7 @@ import LLVM.Codegen
 import LLVM.Codegen.Types
 import LLVM.Codegen.Instructions
 import LLVM.Codegen.Pipeline
+import LLVM.Codegen.Structure
 
 import LLVM.General.AST (Operand)
 
@@ -49,6 +50,13 @@ test_for = do
     j = var i32 zero "j"
     inc = return one
 
+test_record :: LLVM ()
+test_record = do
+  rec <- record "mystuct" [("kirk", i32), ("spock", f32)]
+  def "main" i32 [] $ do
+    alloca (recType rec)
+    return one
+
 -------------------------------------------------------------------------------
 -- Test Runner
 -------------------------------------------------------------------------------
@@ -74,4 +82,5 @@ unitTests = testGroup "Pipeline tests"
     testCase "test_simple" $ compile test_simple
   , testCase "test_multiple" $ compile test_multiple
   , testCase "test_for" $ compile test_for
+  , testCase "test_record" $ compile test_record
   ]

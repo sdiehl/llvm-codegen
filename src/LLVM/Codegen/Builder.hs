@@ -5,7 +5,7 @@ module LLVM.Codegen.Builder (
   terminator,
   addBlock,
   setBlock,
-  entryBlockName,
+  entryBlock,
   createBlocks,
   getBlock,
 
@@ -25,6 +25,7 @@ import LLVM.Codegen.NameSupply
 import Data.Word
 import Data.List
 import Data.Function
+import Data.String
 import qualified Data.Map as Map
 
 import Control.Monad.State
@@ -58,6 +59,7 @@ newtype Codegen a = Codegen { runCodegen :: State CodegenState a }
 sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
 sortBlocks = sortBy (compare `on` (idx . snd))
 
+-- | Evaluate the result Codegen monad into a BasicBlock AST.
 createBlocks :: CodegenState -> [BasicBlock]
 createBlocks m = map makeBlock $ sortBlocks $ Map.toList (blocks m)
 
@@ -67,17 +69,26 @@ makeBlock (l, (BlockState _ s t)) = BasicBlock l s (maketerm t)
     maketerm (Just x) = x
     maketerm Nothing = error $ "Block has no terminator: " ++ (show l)
 
-entryBlockName :: String
-entryBlockName = "entry"
+-- | Evaluate the result Codegen monad into a BasicBlock AST.
+defaultEntry :: String
+defaultEntry = "entry"
 
 emptyBlock :: Int -> BlockState
 emptyBlock i = BlockState i [] Nothing
 
 emptyCodegen :: CodegenState
-emptyCodegen = CodegenState (Name entryBlockName) Map.empty [] 1 0 Map.empty
+emptyCodegen = CodegenState (Name defaultEntry) Map.empty [] 1 0 Map.empty
 
+-- | Evaluate the Codegen monad returning the state accrued.
 execCodegen :: [(String, Operand)] -> Codegen a -> CodegenState
 execCodegen vars m = execState (runCodegen m) emptyCodegen { symtab = vars }
+
+
+entryBlock :: Codegen Name
+entryBlock = do
+  entry <- addBlock defaultEntry
+  setBlock entry
+  return entry
 
 fresh :: Codegen Word
 fresh = do
@@ -119,6 +130,9 @@ named iname m = m >> do
       (_ := x) = last (stack blk)
   modifyBlock $ blk { stack = init (stack blk) ++ [b := x] }
   return $ local b
+
+instance IsString Name where
+  fromString = Name . fromString
 
 -------------------------------------------------------------------------------
 -- Symbol Table

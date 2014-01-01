@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 
-{-# OPTIONS_GHC -fno-warn-unused-do-bind#-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 
 module LLVM.Codegen.Logic (
   def,
@@ -13,6 +13,7 @@ module LLVM.Codegen.Logic (
   range,
   proj,
   caseof,
+  seqn,
 
   true,
   false,
@@ -59,8 +60,8 @@ def name retty argtys m = do
   define retty name argtys blocks
   where
     blocks = createBlocks $ execCodegen [] $ do
-      entry <- addBlock entryBlockName
-      setBlock entry
+      entryBlock
+      -- Map arguments into values in the symbol table
       forM argtys $ \(ty, a) -> do
         avar <- alloca ty
         store avar (local (Name a))
@@ -184,4 +185,5 @@ proj struct field = undefined
 caseof val brs = undefined
 
 -- | Construction of a sequence statement
-seq a b = a >> b
+seqn :: Codegen a -> Codegen b -> Codegen b
+seqn a b = a >> b

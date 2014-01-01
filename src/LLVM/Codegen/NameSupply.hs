@@ -5,6 +5,7 @@ module LLVM.Codegen.NameSupply (
 
 import qualified Data.Map as Map
 
+-- | Collision free name supply.
 type Names = Map.Map String Int
 
 -- | Returns either a unique name or a mangled name within the given name supply.

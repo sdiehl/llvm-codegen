@@ -6,7 +6,7 @@ module LLVM.Codegen.Types (
   array,
   vector,
   struct,
-  fun,
+  fntype,
   sizeOf,
 
   -- aliases
@@ -61,16 +61,13 @@ struct :: [Type] -> Type
 struct fields = StructureType True fields
 
 -- | Function type constructor
-fun :: Type -> [Type] -> Type
-fun argtys retty = FunctionType argtys retty True
+fntype :: Type -> [Type] -> Type
+fntype argtys retty = FunctionType argtys retty True
 
--- | sizeOf instruction
+-- | sizeof instruction
 sizeOf ::  Type -> Operand
 sizeOf ty = ConstantOperand $ C.PtrToInt
-            (C.GetElementPtr True ty' [C.Int 32 1]) ptr'
+            (C.GetElementPtr True ty' [C.Int 32 1]) ptr
   where
-    ty'  = C.Null $ PointerType ty (AddrSpace 0)
-    ptr' = IntegerType $ fromIntegral bitsize
-
-class Typed a where
-  signed :: a -> Bool
+    ty'  = C.Null $ pointer ty
+    ptr = IntegerType $ fromIntegral bitsize
