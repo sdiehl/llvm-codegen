@@ -57,6 +57,13 @@ test_record = do
     alloca (recType rec)
     return one
 
+test_comparison :: LLVM ()
+test_comparison = do
+  def "main" i1 [(i32, "x")] $ do
+    x <- getvar "x"
+    xv <- load x
+    lt xv one
+
 -------------------------------------------------------------------------------
 -- Test Runner
 -------------------------------------------------------------------------------
@@ -71,8 +78,7 @@ compile m = do
   result <- runPipeline myPipeline defaultSettings ast
   case result of
     Left a -> print a
-    Right b -> putStrLn "Compiled!"
-  return ()
+    Right b -> return ()
 
 tests :: TestTree
 tests = testGroup "Tests" [unitTests]
@@ -83,4 +89,5 @@ unitTests = testGroup "Pipeline tests"
   , testCase "test_multiple" $ compile test_multiple
   , testCase "test_for" $ compile test_for
   , testCase "test_record" $ compile test_record
+  , testCase "test_comparison" $ compile test_comparison
   ]
