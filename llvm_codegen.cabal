@@ -25,6 +25,7 @@ library
     LLVM.Codegen.NameSupply
     LLVM.Codegen.Pipeline
     LLVM.Codegen.Structure
+    LLVM.Codegen.Array
 
   Cc-options:          
   -- Ghc-options:        -Wall
