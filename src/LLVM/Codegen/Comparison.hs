@@ -1,7 +1,10 @@
 module LLVM.Codegen.Comparison (
   lt,
   gt,
-  eq
+  eq,
+  ne,
+  le,
+  ge
 ) where
 
 import LLVM.Codegen.Builder
@@ -47,4 +50,23 @@ eq :: Operand -> Operand -> Codegen Operand
 eq x y = case (x,y) of
   (a,b) | intOperand a   || intOperand b   -> icmp IP.EQ a b
   (a,b) | floatOperand a || floatOperand b -> fcmp FP.OEQ a b
+  _ -> error "Trying to compare non-arithmetic values"
+
+ne :: Operand -> Operand -> Codegen Operand
+ne x y = case (x,y) of
+  (a,b) | intOperand a   || intOperand b   -> icmp IP.NE a b
+  (a,b) | floatOperand a || floatOperand b -> fcmp FP.ONE a b
+  _ -> error "Trying to compare non-arithmetic values"
+
+le :: Operand -> Operand -> Codegen Operand
+le x y = case (x,y) of
+  (a,b) | intOperand a   || intOperand b   -> icmp IP.ULE a b
+  (a,b) | floatOperand a || floatOperand b -> fcmp FP.OLE a b
+  _ -> error "Trying to compare non-arithmetic values"
+
+
+ge :: Operand -> Operand -> Codegen Operand
+ge x y = case (x,y) of
+  (a,b) | intOperand a   || intOperand b   -> icmp IP.UGE a b
+  (a,b) | floatOperand a || floatOperand b -> fcmp FP.OGE a b
   _ -> error "Trying to compare non-arithmetic values"
