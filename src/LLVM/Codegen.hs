@@ -3,6 +3,7 @@ module LLVM.Codegen (
   module LLVM.Codegen.Logic,
   module LLVM.Codegen.Constant,
   module LLVM.Codegen.Instructions,
+  module LLVM.Codegen.Comparison,
   module LLVM.Codegen.Builder
 ) where
 
@@ -17,6 +18,7 @@ import LLVM.Codegen.Logic
 import LLVM.Codegen.Types
 import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
+import LLVM.Codegen.Comparison
 import LLVM.Codegen.Pipeline
 import LLVM.Codegen.Structure
 import LLVM.Codegen.Array

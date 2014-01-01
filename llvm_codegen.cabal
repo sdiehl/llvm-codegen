@@ -16,11 +16,12 @@ source-repository head
 library 
   exposed-modules:
     LLVM.Codegen
-    LLVM.Codegen.Instructions
     LLVM.Codegen.Module
     LLVM.Codegen.Types
     LLVM.Codegen.Constant
     LLVM.Codegen.Builder
+    LLVM.Codegen.Instructions
+    LLVM.Codegen.Comparison
     LLVM.Codegen.Logic
     LLVM.Codegen.NameSupply
     LLVM.Codegen.Pipeline
