@@ -51,7 +51,7 @@ test_for = do
   where
     i = var i32 zero "i"
     j = var i32 zero "j"
-    inc = return one
+    inc = add one
 
 test_record :: LLVM ()
 test_record = do
@@ -94,17 +94,18 @@ test_full = do
   fmt <- fixedstr "%i\n"
   print <- printf
 
+  let i = var i32 zero "i"
+  let j = var i32 zero "j"
   def "main" i32 [] $ do
     for i inc cond $ \ix -> do
-      ix' <- load ix
-      fmt' <- gep (global fmt) [zero, zero]
-      call (fn print) [fmt', ix']
+      for j inc cond $ \jx -> do
+        fmt' <- gep (global fmt) [zero, zero]
+        sum <- add ix jx
+        call (fn print) [fmt', sum]
     return zero
-
   where
-    i = var i32 zero "i"
-    inc = return one
-    cond x = x `lt` (constant i32 100)
+    inc = add one
+    cond x = x `lt` (constant i32 15)
 
 -------------------------------------------------------------------------------
 -- Test Runner
@@ -114,8 +115,8 @@ myPipeline :: Pipeline
 myPipeline =
   [ verifyPass
   , showPass
-  , optimizePass 3
-  , showPass
+  {-, optimizePass 3-}
+  {-, showPass-}
   ]
 
 compile m = do

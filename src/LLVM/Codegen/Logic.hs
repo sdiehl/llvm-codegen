@@ -15,6 +15,7 @@ module LLVM.Codegen.Logic (
   caseof,
   seqn,
   fixedstr,
+  printsf,
 
   true,
   false,
@@ -112,7 +113,7 @@ ife cond tr fl = do
 
 -- | Construction a for statement
 for :: Codegen Operand               -- ^ Iteration variable
-    -> Codegen Operand               -- ^ Action to take on each loop iteration ( increment )
+    -> (Operand -> Codegen Operand)  -- ^ Iteration action
     -> (Operand -> Codegen Operand)  -- ^ Loop exit condition
     -> (Operand -> Codegen a)        -- ^ Loop body
     -> Codegen ()
@@ -122,7 +123,7 @@ for ivar inc cond body = do
   forexit <- addBlock "for.exit"
 
   i <- ivar
-  n <- inc
+  {-n <- inc-}
   br forcond
 
   setBlock forcond
@@ -131,9 +132,9 @@ for ivar inc cond body = do
   cbr test forloop forexit
 
   setBlock forloop
-  body i
   ival <- load i
-  iinc <- add ival n
+  body ival
+  iinc <- inc ival
   store i iinc
   br forcond
 
@@ -209,3 +210,8 @@ fixedstr :: [Char] -> LLVM Name
 fixedstr str = globaldef ".str" (array (len + 1) i8) (cstringz str)
   where
     len = fromIntegral $ length str
+
+-- XXX: stack allocate the string
+printsf :: String -> Operand -> Codegen Operand
+printsf str val = undefined
+  {-call (fn "printf") [fmt'', val]-}

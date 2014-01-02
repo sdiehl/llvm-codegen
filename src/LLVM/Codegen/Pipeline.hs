@@ -67,10 +67,10 @@ showAssembly (ctx, m, settings) = do
   asm <- runErrorT $ withDefaultTargetMachine $ \tm -> do
     gen <- runErrorT $ moduleAssembly tm m
     case  gen of
-      Left err -> throwError (strMsg "")
+      Left err -> throwError (strMsg "Error building target machine.")
       Right a -> return a
   case asm of
-    Left err -> throwError (strMsg "")
+    Left err -> throwError (strMsg "Error generating assembly.")
     Right asm -> do
       putStrLn asm
       return $ Right (ctx, m, settings)
