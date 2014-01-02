@@ -6,7 +6,9 @@ module LLVM.Codegen.Constant (
   cnull,
   cundef,
   cstruct,
+  cstructpack,
   carray,
+  cvector,
   cstring,
   cstringz,
 
@@ -41,16 +43,22 @@ cundef :: Type -> C.Constant
 cundef = C.Undef
 
 cstruct :: [C.Constant] -> C.Constant
-cstruct values = C.Struct True values
+cstruct values = C.Struct False values
+
+cstructpack :: [C.Constant] -> C.Constant
+cstructpack values = C.Struct True values
 
 carray :: Type -> [C.Constant] -> C.Constant
 carray ty values = C.Array ty values
+
+cvector :: [C.Constant] -> C.Constant
+cvector values = C.Vector values
 
 -- | Null terminated constant string
 cstringz :: String -> C.Constant
 cstringz s = carray (IntegerType 8) chars
   where
-    chars = map (ci8 . ord) s ++ [ci8 0]
+    chars = map (ci8 . ord) s ++ [ci8 (0 :: Int)]
 
 -- | Non-null terminated constant string
 cstring :: String -> C.Constant

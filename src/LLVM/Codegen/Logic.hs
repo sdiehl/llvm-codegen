@@ -30,6 +30,7 @@ import LLVM.Codegen.Module
 import LLVM.Codegen.Types
 import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
+import LLVM.Codegen.Structure
 
 import qualified LLVM.General.AST.IntegerPredicate as IP
 
@@ -99,15 +100,15 @@ ife cond tr fl = do
   setBlock ifthen
   trval <- tr
   br ifexit
-  ifthen <- getBlock
+  ifthen' <- getBlock
 
   setBlock ifelse
   flval <- fl
   br ifexit
-  ifelse <- getBlock
+  ifelse' <- getBlock
 
   setBlock ifexit
-  phi double [(trval, ifthen), (flval, ifelse)]
+  phi double [(trval, ifthen'), (flval, ifelse')]
 
 -- | Construction a for statement
 for :: Codegen Operand -> Codegen Operand -> Codegen Operand -> Codegen a -> Codegen ()
@@ -180,7 +181,13 @@ while cond body = do
   return ()
 
 -- | Construction a record projection statement
-proj struct field = undefined
+proj :: Record -> Operand -> Name -> Codegen Operand
+proj rty rec field = do
+  case idxOf field rty of
+    Nothing -> error "No such field name"
+    Just ix -> do
+      elptr <- gep rec [constant i32 0, constant i32 ix]
+      load elptr
 
 -- | Construction a case statement
 caseof val brs = undefined

@@ -15,8 +15,9 @@ loadLib lib = do
   dlopen lib [RTLD_NOW]
   return ()
 
-jit :: Context -> (EE.MCJIT -> IO a) -> IO a
-jit c = EE.withMCJIT c optlevel model ptrelim fastins
+-- JIT with sensible defaults
+withJit :: Context -> (EE.MCJIT -> IO a) -> IO a
+withJit c = EE.withMCJIT c optlevel model ptrelim fastins
   where
     optlevel = Just 3
     model    = Nothing
@@ -26,7 +27,7 @@ jit c = EE.withMCJIT c optlevel model ptrelim fastins
 -- | Call a JIT'd function as the specified type signature.
 callAs :: Context -> Module -> String -> RetType a -> [Arg] -> IO a
 callAs ctx m fname retty argtys =
-  jit ctx $ \executionEngine ->
+  withJit ctx $ \executionEngine ->
     EE.withModuleInEngine executionEngine m $ \ee -> do
       mfn <- EE.getFunction ee (AST.Name fname)
       case mfn of

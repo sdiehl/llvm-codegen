@@ -57,8 +57,8 @@ test_record :: LLVM ()
 test_record = do
   rec <- record "mystuct" [("kirk", i32), ("spock", f32)]
   def "main" i32 [] $ do
-    alloca (recType rec)
-    return one
+    x <- alloca (recType rec)
+    proj rec x "kirk"
 
 test_comparison :: LLVM ()
 test_comparison = do
@@ -84,6 +84,7 @@ test_printf = do
   def "main" i32 [] $ do
     fmt' <- gep (global fmt) [zero, zero]
     call (fn print) [fmt', x]
+
   where
     x = constant i32 42
 

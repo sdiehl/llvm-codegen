@@ -7,6 +7,7 @@ module LLVM.Codegen.Structure (
 
 import LLVM.Codegen.Module
 import LLVM.Codegen.Types
+import LLVM.Codegen.Instructions
 import LLVM.General.AST (Name(..), Type)
 
 -- | Association list of field names to types.
@@ -14,7 +15,7 @@ type Fields = [(Name, Type)]
 
 type FieldsGep = [(Name, Int)]
 
--- | A level of abstraction on top of the LLVM struct object that carries with it the field names and indexes.
+-- | A level of abstraction on top of the LLVM struct object that also carries field names and indexes.
 data Record = Record
     { recName   :: String
     , recType   :: Type
