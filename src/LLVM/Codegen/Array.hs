@@ -5,7 +5,8 @@ module LLVM.Codegen.Array (
 
 import LLVM.General.AST (Name(..), Type)
 
-data Order = RowMajor | ColMajor deriving (Eq, Ord, Show)
+data Order = RowMajor
+           | ColMajor deriving (Eq, Ord, Show)
 
 data Array = Array
     { arrOrder  :: Order
@@ -29,4 +30,6 @@ offset2D arr (a,b) = case arrOrder arr of
 
 offsetND :: Array -> [Int] -> Int
 offsetND arr idx = undefined
-offsetND arr idx = undefined
+
+{-arrayPointer :: [Operand] -> Codegen Operand-}
+{-arrayPointer ixs = do-}

@@ -38,7 +38,8 @@ lt :: Operand -> Operand -> Codegen Operand
 lt x y = case (x,y) of
   (a,b) | intOperand a   || intOperand b   -> icmp IP.ULT a b
   (a,b) | floatOperand a || floatOperand b -> fcmp FP.OLT a b
-  _ -> error "Trying to compare non-arithmetic values"
+  (a,b)                                    -> icmp IP.ULT a b
+  {-_ -> error "Trying to compare non-arithmetic values"-}
 
 gt :: Operand -> Operand -> Codegen Operand
 gt x y = case (x,y) of

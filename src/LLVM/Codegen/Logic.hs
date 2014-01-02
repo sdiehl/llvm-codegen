@@ -16,7 +16,7 @@ module LLVM.Codegen.Logic (
   caseof,
   seqn,
   fixedstr,
-  printsf,
+  debug,
 
   true,
   false,
@@ -71,10 +71,18 @@ def name retty argtys m = do
       entryBlock
       -- Map arguments into values in the symbol table
       forM argtys $ \(ty, a) -> do
-        avar <- alloca ty
+        avar <- (a ++ ".addr") `named` alloca ty
         store avar (local (Name a))
         setvar a avar
-      m >>= ret
+      mval <- m
+      hasTerm <- getTerm
+      -- Set the terminator to the resulting value if not explictly set.
+      case hasTerm of
+        Just x  -> return ()
+        Nothing -> ret mval >> return ()
+
+      -- XXX:
+      -- m >>= ret
 
 -- | Construct a named variable
 var :: Type -> Operand -> String -> Codegen Operand
@@ -125,6 +133,7 @@ for :: Codegen Operand               -- ^ Iteration variable
 for ivar inc cond body = do
   forcond <- addBlock "for.cond"
   forloop <- addBlock "for.loop"
+  forinc  <- addBlock "for.inc"
   forexit <- addBlock "for.exit"
 
   i <- ivar
@@ -138,6 +147,9 @@ for ivar inc cond body = do
   setBlock forloop
   ival <- load i
   body ival
+  br forinc
+
+  setBlock forinc
   iinc <- inc ival
   store i iinc
   br forcond
@@ -154,6 +166,7 @@ range :: String                 -- ^ Name of the iteration variable
 range ivar start stop body = do
   forcond <- addBlock "for.cond"
   forloop <- addBlock "for.loop"
+  forinc  <- addBlock "for.inc"
   forexit <- addBlock "for.exit"
 
   lower <- start
@@ -162,12 +175,16 @@ range ivar start stop body = do
   br forcond
 
   setBlock forcond
-  test <- icmp IP.SLT i upper
+  ival <- load i
+  test <- icmp IP.SLT ival upper
   cbr test forloop forexit
 
   setBlock forloop
   ival <- load i
   body ival
+  br forinc
+
+  setBlock forinc
   iinc <- add ival one
   store i iinc
   br forcond
@@ -175,6 +192,7 @@ range ivar start stop body = do
   setBlock forexit
   return ()
 
+-- | Construction a while statement
 while :: Codegen Operand -> Codegen a -> Codegen ()
 while cond body = do
   forcond <- addBlock "while.cond"
@@ -194,12 +212,15 @@ while cond body = do
   setBlock forexit
   return ()
 
+-- | Construction a loop nest
 loopnest :: [Int] -> [Int] -> [Int] -> Codegen a -> Codegen ()
-loopnest begins ends steps body = go begins ends steps
+loopnest begins ends steps body = do
+    mapM lvar begins
+    go begins ends steps
   where
+    lvar _ = var i32 zero "i"
     go [] [] [] = body >> return ()
     go (b:bs) (e:es) (s:ss) = do
-      i <- var i32 zero "i32"
       let start = return $ constant i32 b
       let stop  = return $ constant i32 e
       range "i" start stop $ \_ ->
@@ -227,6 +248,6 @@ fixedstr str = globaldef ".str" (array (len + 1) i8) (cstringz str)
     len = fromIntegral $ length str
 
 -- XXX: stack allocate the string
-printsf :: String -> Operand -> Codegen Operand
-printsf str val = undefined
+debug :: String -> Operand -> Codegen Operand
+debug str val = undefined
   {-call (fn "printf") [fmt'', val]-}

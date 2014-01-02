@@ -3,11 +3,13 @@
 module LLVM.Codegen.Builder (
   instr,
   terminator,
+  named,
   addBlock,
   setBlock,
   entryBlock,
   createBlocks,
   getBlock,
+  getTerm,
 
   local,
   global,
@@ -82,7 +84,6 @@ emptyCodegen = CodegenState (Name defaultEntry) Map.empty [] 1 0 Map.empty
 -- | Evaluate the Codegen monad returning the state accrued.
 execCodegen :: [(String, Operand)] -> Codegen a -> CodegenState
 execCodegen vars m = execState (runCodegen m) emptyCodegen { symtab = vars }
-
 
 entryBlock :: Codegen Name
 entryBlock = do
@@ -194,6 +195,11 @@ setBlock bname = do
 
 getBlock :: Codegen Name
 getBlock = gets currentBlock
+
+getTerm :: Codegen (Maybe (Named Terminator))
+getTerm = do
+  blk <- current
+  return (term blk)
 
 modifyBlock :: BlockState -> Codegen ()
 modifyBlock new = do
