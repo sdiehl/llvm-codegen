@@ -247,14 +247,15 @@ debug str val = do
   addGlobal defn
   addGlobal printf
 
-  fmt <- gep (global ".str") [zero, zero]
+  fmt <- gep (global strnm) [zero, zero]
   call (fn "printf") [fmt, val]
   where
-    ty = (array (len + 1) i8)
-    cstr = cstringz str
-    len = fromIntegral $ length str
-    defn = GlobalDefinition $ G.globalVariableDefaults {
-      G.name        = Name ".str"
+    ty    = (array (len + 1) i8)
+    cstr  = cstringz str
+    len   = fromIntegral $ length str
+    strnm = Name $ take 10 str
+    defn  = GlobalDefinition $ G.globalVariableDefaults {
+      G.name        = strnm
     , G.type'       = ty
     , G.initializer = (Just cstr)
     }

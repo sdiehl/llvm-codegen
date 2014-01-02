@@ -94,7 +94,7 @@ intrinsic retty label argtys =
      , basicBlocks = []
      }
 
--- XXX: less hackish
+-- | Definition for C printf, hardcoded definition.
 printf :: Definition
 printf = GlobalDefinition $
   functionDefaults {
