@@ -2,6 +2,8 @@
 
 module Main where
 
+import System.IO
+
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.Golden
@@ -72,24 +74,42 @@ test_intrinsic = do
 
   def "main" f64 [] $ do
     let x = constant f64 2
-    call (fn tixx) []
     call (fn llsqrt) [x]
+
+test_printf :: LLVM ()
+test_printf = do
+  print <- printf
+  fmt <- fixedstr "%i"
+
+  def "main" i32 [] $ do
+    fmt' <- gep (global fmt) [zero, zero]
+    call (fn print) [fmt', x]
+  where
+    x = constant i32 42
 
 -------------------------------------------------------------------------------
 -- Test Runner
 -------------------------------------------------------------------------------
 
-main = defaultMain tests
-
 myPipeline :: Pipeline
-myPipeline = [verifyPass, showPass, optimizePass 3, showPass, showAssembly]
+myPipeline =
+  [ verifyPass
+  , showPass
+  -- , optimizePass 3
+  -- , showPass
+  ]
 
 compile m = do
-  let ast = runLLVM (emptyModule "test") m
+  let ast = runLLVM (emptyModule "test module") m
   result <- runPipeline myPipeline defaultSettings ast
   case result of
     Left a -> print a
     Right b -> return ()
+
+main :: IO ()
+main = do
+  hSetBuffering stdout NoBuffering
+  defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [unitTests]
@@ -102,4 +122,5 @@ unitTests = testGroup "Pipeline tests"
   , testCase "test_record" $ compile test_record
   , testCase "test_comparison" $ compile test_comparison
   , testCase "test_intrinsic" $ compile test_intrinsic
+  , testCase "test_printf" $ compile test_printf
   ]

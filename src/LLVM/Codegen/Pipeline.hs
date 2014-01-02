@@ -63,6 +63,7 @@ showPass (ctx, m, settings) = do
 -- | Dump the generated native assembly to stdout.
 showAssembly :: Stage
 showAssembly (ctx, m, settings) = do
+  putStrLn "Showing Assembly..."
   asm <- runErrorT $ withDefaultTargetMachine $ \tm -> do
     gen <- runErrorT $ moduleAssembly tm m
     case  gen of

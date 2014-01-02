@@ -161,8 +161,8 @@ local :: Name -> Operand
 local = LocalReference
 
 -- | Reference to a local value
-global :: Name -> C.Constant
-global = C.GlobalReference
+global :: Name -> Operand
+global = ConstantOperand . C.GlobalReference
 
 -- | Reference to a function
 fn :: Name -> Operand

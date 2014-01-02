@@ -13,6 +13,7 @@ module LLVM.Codegen.Module (
   external,
   intrinsic,
   llintrinsic,
+  printf,
 ) where
 
 import Control.Applicative
@@ -20,6 +21,7 @@ import Control.Monad.State
 
 import LLVM.General.AST
 import LLVM.General.AST.Global as G
+import LLVM.General.AST.AddrSpace
 import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST as AST
 
@@ -61,13 +63,15 @@ opaquetypedef nm = addDefn $
   TypeDefinition (Name nm) Nothing
 
 -- | Declare a toplevel global constant in the current module.
-globaldef :: String -> Type -> C.Constant -> LLVM ()
-globaldef nm ty val = addDefn $
-  GlobalDefinition $ globalVariableDefaults {
-    G.name        = Name nm
-  , G.type'       = ty
-  , G.initializer = (Just val)
-  }
+globaldef :: String -> Type -> C.Constant -> LLVM Name
+globaldef nm ty val = do
+  addDefn $
+    GlobalDefinition $ globalVariableDefaults {
+      G.name        = Name nm
+    , G.type'       = ty
+    , G.initializer = (Just val)
+    }
+  return (Name nm)
 
 -- | Declare a toplevel external function in the current module.
 external :: Type -> String -> [(Type, Name)] -> LLVM Name
@@ -89,6 +93,19 @@ intrinsic retty label argtys =
      , returnType  = retty
      , basicBlocks = []
      }
+
+-- XXX: less hackish
+printf :: LLVM Name
+printf = do
+  addDefn $
+    GlobalDefinition $ functionDefaults {
+         name        = Name "printf"
+       , parameters  =
+          ([(Parameter (PointerType (IntegerType 8) (AddrSpace 0)) (UnName 0) [])], True)
+       , returnType  = (IntegerType 32)
+       , basicBlocks = []
+       }
+  return (Name "printf")
 
 globalName :: Definition -> Name
 globalName (GlobalDefinition (Function {name = x})) = x

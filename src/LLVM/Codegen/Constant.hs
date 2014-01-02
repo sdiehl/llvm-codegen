@@ -7,9 +7,13 @@ module LLVM.Codegen.Constant (
   cundef,
   cstruct,
   carray,
+  cstring,
+  cstringz,
 
   Constant(..)
 ) where
+
+import Data.Char
 
 import LLVM.General.AST
 import qualified LLVM.General.AST.Float as F
@@ -41,6 +45,18 @@ cstruct values = C.Struct True values
 
 carray :: Type -> [C.Constant] -> C.Constant
 carray ty values = C.Array ty values
+
+-- | Null terminated constant string
+cstringz :: String -> C.Constant
+cstringz s = carray (IntegerType 8) chars
+  where
+    chars = map (ci8 . ord) s ++ [ci8 0]
+
+-- | Non-null terminated constant string
+cstring :: String -> C.Constant
+cstring s = carray (IntegerType 8) chars
+  where
+    chars = map (ci8 . ord) s
 
 -- | Conversion between Haskell numeric values and LLVM constants
 class Constant a where

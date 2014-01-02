@@ -15,10 +15,11 @@ import LLVM.Codegen.Instructions
 import LLVM.Codegen.Builder
 import qualified LLVM.General.AST.Constant as C
 
+-- XXX: make this emit an instruction
 -- | sizeof instruction
-sizeOf ::  Type -> Operand
-sizeOf ty =
-  ConstantOperand $ C.PtrToInt (C.GetElementPtr True nullty off) ptr
+sizeOf ::  Type -> Codegen Operand
+sizeOf ty = return $ ConstantOperand $
+  C.PtrToInt (C.GetElementPtr True nullty off) ptr
   where
     off    = [C.Int 32 1]
     nullty = C.Null $ pointer ty

@@ -14,6 +14,7 @@ module LLVM.Codegen.Logic (
   proj,
   caseof,
   seqn,
+  fixedstr,
 
   true,
   false,
@@ -187,3 +188,9 @@ caseof val brs = undefined
 -- | Construction of a sequence statement
 seqn :: Codegen a -> Codegen b -> Codegen b
 seqn a b = a >> b
+
+-- | Construct a toplevel reference to an immutable null-terminated global string.
+fixedstr :: [Char] -> LLVM Name
+fixedstr str = globaldef ".str" (array (len + 1) i8) (cstringz str)
+  where
+    len = fromIntegral $ length str
