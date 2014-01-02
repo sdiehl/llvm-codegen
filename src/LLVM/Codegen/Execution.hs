@@ -23,11 +23,12 @@ jit c = EE.withMCJIT c optlevel model ptrelim fastins
     ptrelim  = Nothing
     fastins  = Nothing
 
+-- | Call a JIT'd function as the specified type signature.
 callAs :: Context -> Module -> String -> RetType a -> [Arg] -> IO a
 callAs ctx m fname retty argtys =
   jit ctx $ \executionEngine ->
     EE.withModuleInEngine executionEngine m $ \ee -> do
-      res <- EE.getFunction ee (AST.Name fname)
-      case res of
-        Nothing -> throwError (strMsg "No such function")
+      mfn <- EE.getFunction ee (AST.Name fname)
+      case mfn of
+        Nothing -> throwError (strMsg $ "No such function: " ++ fname)
         Just fn -> callFFI fn retty argtys >>= return

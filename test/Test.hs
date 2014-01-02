@@ -82,7 +82,7 @@ test_intrinsic = do
 main = defaultMain tests
 
 myPipeline :: Pipeline
-myPipeline = [verifyPass, showPass, optimizePass, showPass]
+myPipeline = [verifyPass, showPass, optimizePass 3, showPass, showAssembly]
 
 compile m = do
   let ast = runLLVM (emptyModule "test") m

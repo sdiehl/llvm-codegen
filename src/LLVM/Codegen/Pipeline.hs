@@ -8,7 +8,8 @@ module LLVM.Codegen.Pipeline (
 
   optimizePass,
   verifyPass,
-  showPass
+  showPass,
+  showAssembly
 ) where
 
 import Data.Word
@@ -59,11 +60,25 @@ showPass (ctx, m, settings) = do
   putStrLn s
   return $ Right (ctx, m, settings)
 
+-- | Dump the generated native assembly to stdout.
+showAssembly :: Stage
+showAssembly (ctx, m, settings) = do
+  asm <- runErrorT $ withDefaultTargetMachine $ \tm -> do
+    gen <- runErrorT $ moduleAssembly tm m
+    case  gen of
+      Left err -> throwError (strMsg "")
+      Right a -> return a
+  case asm of
+    Left err -> throwError (strMsg "")
+    Right asm -> do
+      putStrLn asm
+      return $ Right (ctx, m, settings)
+
 -- | Run the curated pass with the 'opt' level specified in the Settings.
-optimizePass :: Stage
-optimizePass (ctx, m, settings) = do
+optimizePass :: Word -> Stage
+optimizePass level (ctx, m, settings) = do
   putStrLn "Running optimizer..."
-  let passes = defaultCuratedPassSetSpec { optLevel = Just (opt settings) }
+  let passes = defaultCuratedPassSetSpec { optLevel = Just level }
   withPassManager passes $ \pm -> do
     runPassManager pm m
   return $ Right (ctx, m, settings)
