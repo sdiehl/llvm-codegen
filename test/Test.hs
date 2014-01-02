@@ -43,8 +43,8 @@ test_for = do
   foo <- external i32 "foo" []
 
   def "forloop" i32 [] $ do
-    for i inc false $ do
-      for j inc false $ do
+    for i inc (const true) $ \_ -> do
+      for j inc (const true) $ \_ -> do
         call (fn foo) []
     return zero
 
@@ -55,10 +55,11 @@ test_for = do
 
 test_record :: LLVM ()
 test_record = do
-  rec <- record "mystuct" [("kirk", i32), ("spock", f32)]
+  rec <- record "myrecord" [("kirk", i32), ("spock", f32)]
   def "main" i32 [] $ do
     x <- alloca (recType rec)
-    proj rec x "kirk"
+    xp <- proj rec x "kirk"
+    load xp
 
 test_comparison :: LLVM ()
 test_comparison = do
@@ -88,6 +89,23 @@ test_printf = do
   where
     x = constant i32 42
 
+test_full :: LLVM ()
+test_full = do
+  fmt <- fixedstr "%i\n"
+  print <- printf
+
+  def "main" i32 [] $ do
+    for i inc cond $ \ix -> do
+      ix' <- load ix
+      fmt' <- gep (global fmt) [zero, zero]
+      call (fn print) [fmt', ix']
+    return zero
+
+  where
+    i = var i32 zero "i"
+    inc = return one
+    cond x =t x `lt` (constant i32 100)
+
 -------------------------------------------------------------------------------
 -- Test Runner
 -------------------------------------------------------------------------------
@@ -96,8 +114,8 @@ myPipeline :: Pipeline
 myPipeline =
   [ verifyPass
   , showPass
-  -- , optimizePass 3
-  -- , showPass
+  , optimizePass 3
+  , showPass
   ]
 
 compile m = do
@@ -124,4 +142,5 @@ unitTests = testGroup "Pipeline tests"
   , testCase "test_comparison" $ compile test_comparison
   , testCase "test_intrinsic" $ compile test_intrinsic
   , testCase "test_printf" $ compile test_printf
+  , testCase "test_full" $ compile test_full
   ]

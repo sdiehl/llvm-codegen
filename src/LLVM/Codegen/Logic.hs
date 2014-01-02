@@ -70,7 +70,7 @@ def name retty argtys m = do
         setvar a avar
       m >>= ret
 
--- | Construct a variable
+-- | Construct a named variable
 var :: Type -> Operand -> String -> Codegen Operand
 var ty val name = do
   ref <- alloca ty
@@ -111,7 +111,11 @@ ife cond tr fl = do
   phi double [(trval, ifthen'), (flval, ifelse')]
 
 -- | Construction a for statement
-for :: Codegen Operand -> Codegen Operand -> Codegen Operand -> Codegen a -> Codegen ()
+for :: Codegen Operand               -- ^ Iteration variable
+    -> Codegen Operand               -- ^ Action to take on each loop iteration ( increment )
+    -> (Operand -> Codegen Operand)  -- ^ Loop exit condition
+    -> (Operand -> Codegen a)        -- ^ Loop body
+    -> Codegen ()
 for ivar inc cond body = do
   forcond <- addBlock "for.cond"
   forloop <- addBlock "for.loop"
@@ -122,11 +126,12 @@ for ivar inc cond body = do
   br forcond
 
   setBlock forcond
-  test <- cond
+  ival <- load i
+  test <- cond ival
   cbr test forloop forexit
 
   setBlock forloop
-  body
+  body i
   ival <- load i
   iinc <- add ival n
   store i iinc
@@ -136,7 +141,11 @@ for ivar inc cond body = do
   return ()
 
 -- | Construction for range statement
-range :: String -> Codegen Operand -> Codegen Operand -> Codegen a -> Codegen ()
+range :: String             -- ^ Name of the iteration variable
+      -> Codegen Operand    -- ^ Lower bound
+      -> Codegen Operand    -- ^ Upper bound
+      -> Codegen a          -- ^ Loop body
+      -> Codegen ()
 range ivar start stop body = do
   forcond <- addBlock "for.cond"
   forloop <- addBlock "for.loop"
@@ -181,13 +190,12 @@ while cond body = do
   return ()
 
 -- | Construction a record projection statement
-proj :: Record -> Operand -> Name -> Codegen Operand
-proj rty rec field = do
+proj :: RecordType -> Operand -> Name -> Codegen Operand
+proj rty rec field =
   case idxOf field rty of
-    Nothing -> error "No such field name"
+    Nothing -> error $ "No such field name: " ++ show field
     Just ix -> do
-      elptr <- gep rec [constant i32 0, constant i32 ix]
-      load elptr
+      gep rec [constant i32 0, constant i32 ix]
 
 -- | Construction a case statement
 caseof val brs = undefined
