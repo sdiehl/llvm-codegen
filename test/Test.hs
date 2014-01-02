@@ -104,7 +104,7 @@ test_full = do
   where
     i = var i32 zero "i"
     inc = return one
-    cond x =t x `lt` (constant i32 100)
+    cond x = x `lt` (constant i32 100)
 
 -------------------------------------------------------------------------------
 -- Test Runner

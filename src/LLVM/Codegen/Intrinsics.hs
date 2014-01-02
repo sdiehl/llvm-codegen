@@ -24,8 +24,19 @@ ceil  = intrinsic f64 "llvm.ceil.f64" [f64]
 bswap = intrinsic i64 "llvm.bswap.i64" [i64]
 
 -------------------------------------------------------------------------------
--- Memoory Intrinsics
+-- Memory Intrinsics
 -------------------------------------------------------------------------------
+
+memcpy = intrinsic f64 "llvm.sin.f64" [f64]
+
+-------------------------------------------------------------------------------
+-- Lifetime Intrinsics
+-------------------------------------------------------------------------------
+
+lifestart = intrinsic void "llvm.lifetime.start" [i64, pointer i8]
+lifeend   = intrinsic void "llvm.lifetime.end" [i64, pointer i8]
+invstart  = intrinsic void "llvm.invariant.start" [i64, pointer i8]
+invend    = intrinsic void "llvm.invariant.end" [pointer void, i64, pointer i8]
 
 -------------------------------------------------------------------------------
 -- NVPTX Intrinsics
@@ -62,3 +73,9 @@ syncthreads = intrinsic void "llvm.cuda.syncthreads" []
 -- warpsize
 warpsize :: Definition
 warpsize = intrinsic void "llvm.nvvm.read.ptx.sreg.warpsize" []
+
+-------------------------------------------------------------------------------
+-- Misc
+-------------------------------------------------------------------------------
+
+noop = intrinsic void "llvm.donothing" []
