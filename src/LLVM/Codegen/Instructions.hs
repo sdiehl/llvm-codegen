@@ -294,7 +294,7 @@ insertelement :: Operand -> Operand -> Operand -> Codegen Operand
 insertelement vec el idx = instr $ InsertElement vec el idx []
 
 shufflevector :: Operand -> Operand -> C.Constant -> Codegen Operand
-shufflevector a b mask = instr $ ShuffleVector a b mask []
+shufflevector a b msk = instr $ ShuffleVector a b msk []
 
 extractvalue :: Operand -> [Word32] -> Codegen Operand
 extractvalue a idx = instr $ ExtractValue a idx []
@@ -313,7 +313,7 @@ fence :: Codegen Operand
 fence = instr $ Fence singlethreaded []
 
 cmpxchg :: Operand -> Operand -> Operand -> Codegen Operand
-cmpxchg ptr exp rep = instr $ CmpXchg False ptr exp rep singlethreaded []
+cmpxchg ptr val rep = instr $ CmpXchg False ptr val rep singlethreaded []
 
 atomicrmw :: RMWOperation -> Operand -> Operand -> Codegen Operand
 atomicrmw op ptr val = instr $ AtomicRMW False op ptr val singlethreaded []

@@ -11,7 +11,7 @@ import LLVM.Codegen.Module
 -------------------------------------------------------------------------------
 
 sin   = intrinsic f64 "llvm.sin.f64" [f64]
-cos   = intrinsic f64 "llvm.sin.f64" [f64]
+cos   = intrinsic f64 "llvm.cos.f64" [f64]
 tan   = intrinsic f64 "llvm.tan.f64" [f64]
 sqrt  = intrinsic f64 "llvm.sqrt.f64" [f64]
 pow   = intrinsic f64 "llvm.pow.f64" [f64, f64]

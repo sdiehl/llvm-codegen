@@ -14,6 +14,7 @@ import LLVM.Codegen.Builder
 import LLVM.Codegen.Module
 import LLVM.Codegen.GC
 import LLVM.Codegen.Intrinsics
+import LLVM.Codegen.Execution
 
 -- External
 import LLVM.Codegen.Logic
