@@ -12,6 +12,8 @@ import LLVM.Codegen.Utils
 import LLVM.Codegen.NameSupply
 import LLVM.Codegen.Builder
 import LLVM.Codegen.Module
+import LLVM.Codegen.GC
+import LLVM.Codegen.Intrinsics
 
 -- External
 import LLVM.Codegen.Logic

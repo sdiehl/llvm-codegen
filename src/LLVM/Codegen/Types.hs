@@ -7,7 +7,6 @@ module LLVM.Codegen.Types (
   vector,
   struct,
   fntype,
-  sizeOf,
 
   -- aliases
   float,
@@ -20,7 +19,6 @@ import LLVM.Codegen.Utils
 import LLVM.General.AST hiding (vector)
 
 import LLVM.General.AST.AddrSpace
-import qualified LLVM.General.AST.Constant as C
 
 -- | Integer types
 i1, i8, i16, i32, i64, i128 :: Type
@@ -63,11 +61,3 @@ struct fields = StructureType True fields
 -- | Function type constructor
 fntype :: Type -> [Type] -> Type
 fntype argtys retty = FunctionType argtys retty True
-
--- | sizeof instruction
-sizeOf ::  Type -> Operand
-sizeOf ty = ConstantOperand $ C.PtrToInt
-            (C.GetElementPtr True ty' [C.Int 32 1]) ptr
-  where
-    ty'  = C.Null $ pointer ty
-    ptr = IntegerType $ fromIntegral bitsize

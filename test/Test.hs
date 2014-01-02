@@ -11,6 +11,7 @@ import LLVM.Codegen.Types
 import LLVM.Codegen.Instructions
 import LLVM.Codegen.Pipeline
 import LLVM.Codegen.Structure
+import qualified LLVM.Codegen.Intrinsics as I
 
 import LLVM.General.AST (Operand)
 
@@ -64,6 +65,16 @@ test_comparison = do
     xv <- load x
     lt xv one
 
+test_intrinsic :: LLVM ()
+test_intrinsic = do
+  llsqrt <- llintrinsic I.sqrt
+  tixx <- llintrinsic I.tixx
+
+  def "main" f64 [] $ do
+    let x = constant f64 2
+    call (fn tixx) []
+    call (fn llsqrt) [x]
+
 -------------------------------------------------------------------------------
 -- Test Runner
 -------------------------------------------------------------------------------
@@ -90,4 +101,5 @@ unitTests = testGroup "Pipeline tests"
   , testCase "test_for" $ compile test_for
   , testCase "test_record" $ compile test_record
   , testCase "test_comparison" $ compile test_comparison
+  , testCase "test_intrinsic" $ compile test_intrinsic
   ]

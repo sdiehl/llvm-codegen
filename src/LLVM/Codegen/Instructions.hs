@@ -15,10 +15,14 @@ module LLVM.Codegen.Instructions (
   ashr,
 
   call,
+  ccall,
   alloca,
   store,
   load,
   gep,
+  ref,
+
+  ptrtoint,
 
   fcmp,
   icmp,
@@ -197,6 +201,20 @@ call fn args = instr $ Call False CC.C [] (Right fn) (toArgs args) [] []
 toArgs :: [Operand] -> [(Operand, [A.ParameterAttribute])]
 toArgs = map (\x -> (x, []))
 
+-- | Call an external C function.
+ccall :: String -> [Operand] -> Codegen Operand
+ccall name args = instr $ Call
+  { isTailCall = False
+  , callingConvention = CC.C
+  , returnAttributes = []
+  , function = Right fn
+  , arguments = toArgs args
+  , functionAttributes = []
+  , metadata = []
+  }
+  where
+    fn = ConstantOperand (C.GlobalReference (Name name))
+
 -------------------------------------------------------------------------------
 -- Memory Access
 -------------------------------------------------------------------------------
@@ -211,7 +229,11 @@ load :: Operand -> Codegen Operand
 load ptr = instr $ Load False ptr Nothing 0 []
 
 gep ::  Operand -> [Operand] -> Codegen Operand
-gep ptr idx = instr $ GetElementPtr True ptr idx []
+gep val idx = instr $ GetElementPtr True val idx []
+
+-- | Return a reference to the given value, like (&) in C.
+ref :: Operand -> Codegen Operand
+ref val = instr $ GetElementPtr True val [cons $ C.Int 32 0] []
 
 -------------------------------------------------------------------------------
 -- Control Flow

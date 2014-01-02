@@ -84,7 +84,7 @@ constant ty val
   | ty == i32 = cons $ ci32 $ fromIntegral val
   | ty == i64 = cons $ ci64 $ fromIntegral val
   | ty == f32 = cons $ cf32 $ fromIntegral val
-  | ty == f64 = cons $ cf32 $ fromIntegral val
+  | ty == f64 = cons $ cf64 $ fromIntegral val
 
 -- | Construction a if/then/else statement
 ife :: Operand -> Codegen Operand -> Codegen Operand -> Codegen Operand

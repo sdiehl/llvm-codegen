@@ -11,6 +11,8 @@ module LLVM.Codegen.Module (
   opaquetypedef,
   globaldef,
   external,
+  intrinsic,
+  llintrinsic,
 ) where
 
 import Control.Applicative
@@ -68,13 +70,37 @@ globaldef nm ty val = addDefn $
   }
 
 -- | Declare a toplevel external function in the current module.
-external ::  Type -> String -> [(Type, Name)] -> LLVM Name
+external :: Type -> String -> [(Type, Name)] -> LLVM Name
 external retty label argtys = do
   addDefn $
     GlobalDefinition $ functionDefaults {
       name        = Name label
-    , parameters  = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
+    , parameters  = toParams argtys
     , returnType  = retty
     , basicBlocks = []
     }
   return (Name label)
+
+intrinsic :: Type -> String -> [Type] -> Definition
+intrinsic retty label argtys =
+  GlobalDefinition $ functionDefaults {
+       name        = Name label
+     , parameters  = toUParams argtys
+     , returnType  = retty
+     , basicBlocks = []
+     }
+
+globalName :: Definition -> Name
+globalName (GlobalDefinition (Function {name = x})) = x
+globalName (GlobalDefinition (GlobalAlias {name = x})) = x
+globalName (GlobalDefinition (GlobalVariable {name = x})) = x
+
+-- | Produce a reference to an LLVM intrinsic.
+llintrinsic :: Definition -> LLVM Name
+llintrinsic intr = addDefn intr >>= (\def -> return (globalName intr))
+
+toParams :: [(Type, Name)] -> ([Parameter], Bool)
+toParams args = ([Parameter ty nm [] | (ty, nm) <- args], False)
+
+toUParams :: [Type] -> ([Parameter], Bool)
+toUParams args = ([Parameter ty (UnName nm) [] | (ty, nm) <- zip args [0..]], False)
