@@ -10,6 +10,7 @@ module LLVM.Codegen.Builder (
   createBlocks,
   getBlock,
   getTerm,
+  addGlobal,
 
   local,
   global,
@@ -28,10 +29,12 @@ import Data.Word
 import Data.List
 import Data.Function
 import Data.String
-import qualified Data.Map as Map
 
 import Control.Monad.State
 import Control.Applicative
+
+import qualified Data.Map as Map
+import qualified Data.Map as Set
 
 import LLVM.General.AST
 import qualified LLVM.General.AST.Constant as C
@@ -46,6 +49,7 @@ data CodegenState
   , blockCount   :: Int                      -- Count of basic blocks
   , count        :: Word                     -- Count of unnamed instructions
   , names        :: Names                    -- Name Supply
+  , globals      :: [Definition]             -- Globals to add to outer module
   } deriving Show
 
 data BlockState
@@ -79,7 +83,7 @@ emptyBlock :: Int -> BlockState
 emptyBlock i = BlockState i [] Nothing
 
 emptyCodegen :: CodegenState
-emptyCodegen = CodegenState (Name defaultEntry) Map.empty [] 1 0 Map.empty
+emptyCodegen = CodegenState (Name defaultEntry) Map.empty [] 1 0 Map.empty []
 
 -- | Evaluate the Codegen monad returning the state accrued.
 execCodegen :: [(String, Operand)] -> Codegen a -> CodegenState
@@ -172,6 +176,12 @@ fn = ConstantOperand . C.GlobalReference
 -------------------------------------------------------------------------------
 -- Block Stack
 -------------------------------------------------------------------------------
+
+-- | Locally add a global to be added when the function is attached to a module.
+addGlobal :: Definition -> Codegen ()
+addGlobal def = do
+  glb <- gets globals
+  modify $ \s -> s { globals = def : glb }
 
 -- | Append a new named basic block to a function
 addBlock :: String -> Codegen Name

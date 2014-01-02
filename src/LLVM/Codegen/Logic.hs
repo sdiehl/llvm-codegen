@@ -36,7 +36,8 @@ import LLVM.Codegen.Structure
 
 import qualified LLVM.General.AST.IntegerPredicate as IP
 
-import LLVM.General.AST (Name(..), Type, Operand)
+import qualified LLVM.General.AST.Global as G
+import LLVM.General.AST (Name(..), Type, Operand, Definition(..))
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -247,7 +248,18 @@ fixedstr str = globaldef ".str" (array (len + 1) i8) (cstringz str)
   where
     len = fromIntegral $ length str
 
--- XXX: stack allocate the string
+-- | Wrapper for debugging with printf
 debug :: String -> Operand -> Codegen Operand
-debug str val = undefined
-  {-call (fn "printf") [fmt'', val]-}
+debug str val = do
+  addGlobal defn
+  fmt <- gep (global ".str") [zero, zero]
+  call (fn "printf") [fmt, val]
+  where
+    ty = (array (len + 1) i8)
+    cstr = cstringz str
+    len = fromIntegral $ length str
+    defn = GlobalDefinition $ G.globalVariableDefaults {
+      G.name        = Name ".str"
+    , G.type'       = ty
+    , G.initializer = (Just cstr)
+    }
