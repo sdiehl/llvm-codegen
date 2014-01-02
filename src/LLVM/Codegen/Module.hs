@@ -95,17 +95,15 @@ intrinsic retty label argtys =
      }
 
 -- XXX: less hackish
-printf :: LLVM Name
-printf = do
-  addDefn $
-    GlobalDefinition $ functionDefaults {
-         name        = Name "printf"
-       , parameters  =
-          ([(Parameter (PointerType (IntegerType 8) (AddrSpace 0)) (UnName 0) [])], True)
-       , returnType  = (IntegerType 32)
-       , basicBlocks = []
-       }
-  return (Name "printf")
+printf :: Definition
+printf = GlobalDefinition $
+  functionDefaults {
+    name        = Name "printf"
+  , parameters  =
+     ([(Parameter (PointerType (IntegerType 8) (AddrSpace 0)) (UnName 0) [])], True)
+  , returnType  = (IntegerType 32)
+  , basicBlocks = []
+  }
 
 globalName :: Definition -> Name
 globalName (GlobalDefinition (Function {name = x})) = x

@@ -22,6 +22,7 @@ library
     LLVM.Codegen.Builder
     LLVM.Codegen.Instructions
     LLVM.Codegen.Comparison
+    LLVM.Codegen.String
     LLVM.Codegen.Logic
     LLVM.Codegen.NameSupply
     LLVM.Codegen.Pipeline

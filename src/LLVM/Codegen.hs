@@ -4,6 +4,7 @@ module LLVM.Codegen (
   module LLVM.Codegen.Constant,
   module LLVM.Codegen.Instructions,
   module LLVM.Codegen.Comparison,
+  module LLVM.Codegen.String,
   module LLVM.Codegen.Builder
 ) where
 
@@ -15,6 +16,7 @@ import LLVM.Codegen.Module
 import LLVM.Codegen.GC
 import LLVM.Codegen.Intrinsics
 import LLVM.Codegen.Execution
+import LLVM.Codegen.String
 
 -- External
 import LLVM.Codegen.Logic

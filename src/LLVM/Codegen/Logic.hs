@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
-
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 
 module LLVM.Codegen.Logic (
@@ -15,7 +14,6 @@ module LLVM.Codegen.Logic (
   proj,
   caseof,
   seqn,
-  fixedstr,
   debug,
 
   true,
@@ -66,9 +64,10 @@ one = constant i32 1
 -- | Construct a toplevel function.
 def :: String -> Type -> [(Type, String)] -> Codegen Operand -> LLVM ()
 def name retty argtys m = do
-  define retty name argtys blocks
+    mapM addDefn globals
+    define retty name argtys blocks
   where
-    blocks = createBlocks $ execCodegen [] $ do
+    (blocks, globals) = evalCodegen $ do
       entryBlock
       -- Map arguments into values in the symbol table
       forM argtys $ \(ty, a) -> do
@@ -242,16 +241,12 @@ caseof val brs = undefined
 seqn :: Codegen a -> Codegen b -> Codegen b
 seqn a b = a >> b
 
--- | Construct a toplevel reference to an immutable null-terminated global string.
-fixedstr :: [Char] -> LLVM Name
-fixedstr str = globaldef ".str" (array (len + 1) i8) (cstringz str)
-  where
-    len = fromIntegral $ length str
-
 -- | Wrapper for debugging with printf
 debug :: String -> Operand -> Codegen Operand
 debug str val = do
   addGlobal defn
+  addGlobal printf
+
   fmt <- gep (global ".str") [zero, zero]
   call (fn "printf") [fmt, val]
   where

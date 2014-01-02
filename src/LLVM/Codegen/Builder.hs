@@ -1,4 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module LLVM.Codegen.Builder (
   instr,
@@ -8,6 +10,8 @@ module LLVM.Codegen.Builder (
   setBlock,
   entryBlock,
   createBlocks,
+  createGlobals,
+
   getBlock,
   getTerm,
   addGlobal,
@@ -20,7 +24,8 @@ module LLVM.Codegen.Builder (
   setvar,
 
   Codegen,
-  execCodegen,
+  {-execCodegen,-}
+  evalCodegen,
 ) where
 
 import LLVM.Codegen.NameSupply
@@ -34,7 +39,6 @@ import Control.Monad.State
 import Control.Applicative
 
 import qualified Data.Map as Map
-import qualified Data.Map as Set
 
 import LLVM.General.AST
 import qualified LLVM.General.AST.Constant as C
@@ -43,20 +47,20 @@ type SymbolTable = [(String, Operand)]
 
 data CodegenState
   = CodegenState {
-    currentBlock :: Name                     -- Name of the active block to append to
-  , blocks       :: Map.Map Name BlockState  -- Blocks for function
-  , symtab       :: SymbolTable              -- Function scope symbol table
-  , blockCount   :: Int                      -- Count of basic blocks
-  , count        :: Word                     -- Count of unnamed instructions
-  , names        :: Names                    -- Name Supply
-  , globals      :: [Definition]             -- Globals to add to outer module
+    currentBlock :: Name                     -- ^ Name of the active block to append to
+  , blocks       :: Map.Map Name BlockState  -- ^ Blocks for function
+  , symtab       :: SymbolTable              -- ^ Function scope symbol table
+  , blockCount   :: Int                      -- ^ Count of basic blocks
+  , count        :: Word                     -- ^ Count of unnamed instructions
+  , names        :: Names                    -- ^ Name Supply
+  , globals      :: [Definition]             -- ^ Globals to add to outer module
   } deriving Show
 
 data BlockState
   = BlockState {
-    idx   :: Int                            -- Block index
-  , stack :: [Named Instruction]            -- Stack of instructions
-  , term  :: Maybe (Named Terminator)       -- Block terminator
+    idx   :: Int                            -- ^ Block index
+  , stack :: [Named Instruction]            -- ^ Stack of instructions
+  , term  :: Maybe (Named Terminator)       -- ^ Block terminator
   } deriving Show
 
 newtype Codegen a = Codegen { runCodegen :: State CodegenState a }
@@ -68,6 +72,17 @@ sortBlocks = sortBy (compare `on` (idx . snd))
 -- | Evaluate the result Codegen monad into a BasicBlock AST.
 createBlocks :: CodegenState -> [BasicBlock]
 createBlocks m = map makeBlock $ sortBlocks $ Map.toList (blocks m)
+
+createGlobals :: CodegenState -> [Definition]
+createGlobals m = globals m
+
+evalCodegen :: Codegen a -> ([BasicBlock], [Definition])
+evalCodegen m = (createBlocks cs, createGlobals cs)
+  where cs = execCodegen [] m
+
+-- | Evaluate the Codegen monad returning the state accrued.
+execCodegen :: [(String, Operand)] -> Codegen a -> CodegenState
+execCodegen vars m = execState (runCodegen m) emptyCodegen { symtab = vars }
 
 makeBlock :: (Name, BlockState) -> BasicBlock
 makeBlock (l, (BlockState _ s t)) = BasicBlock l s (maketerm t)
@@ -84,10 +99,6 @@ emptyBlock i = BlockState i [] Nothing
 
 emptyCodegen :: CodegenState
 emptyCodegen = CodegenState (Name defaultEntry) Map.empty [] 1 0 Map.empty []
-
--- | Evaluate the Codegen monad returning the state accrued.
-execCodegen :: [(String, Operand)] -> Codegen a -> CodegenState
-execCodegen vars m = execState (runCodegen m) emptyCodegen { symtab = vars }
 
 entryBlock :: Codegen Name
 entryBlock = do
