@@ -79,3 +79,4 @@ warpsize = intrinsic void "llvm.nvvm.read.ptx.sreg.warpsize" []
 -------------------------------------------------------------------------------
 
 noop = intrinsic void "llvm.donothing" []
+prefetch = intrinsic void "llvm.prefetch" [pointer i8, i32, i32, i32]

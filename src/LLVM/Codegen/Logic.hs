@@ -11,6 +11,7 @@ module LLVM.Codegen.Logic (
   for,
   while,
   range,
+  loopnest,
   proj,
   caseof,
   seqn,
@@ -41,15 +42,19 @@ import LLVM.General.AST (Name(..), Type, Operand)
 -- Constants
 -------------------------------------------------------------------------------
 
+-- | Constant false value
 false :: Codegen Operand
 false = return $ constant i1 0
 
+-- | Constant true value
 true :: Codegen Operand
 true = return $ constant i1 1
 
+-- | Constant integer zero
 zero :: Operand
 zero = constant i32 0
 
+-- | Constant integer one
 one :: Operand
 one = constant i32 1
 
@@ -123,7 +128,6 @@ for ivar inc cond body = do
   forexit <- addBlock "for.exit"
 
   i <- ivar
-  {-n <- inc-}
   br forcond
 
   setBlock forcond
@@ -142,10 +146,10 @@ for ivar inc cond body = do
   return ()
 
 -- | Construction for range statement
-range :: String             -- ^ Name of the iteration variable
-      -> Codegen Operand    -- ^ Lower bound
-      -> Codegen Operand    -- ^ Upper bound
-      -> Codegen a          -- ^ Loop body
+range :: String                 -- ^ Name of the iteration variable
+      -> Codegen Operand        -- ^ Lower bound
+      -> Codegen Operand        -- ^ Upper bound
+      -> (Operand -> Codegen a) -- ^ Loop body
       -> Codegen ()
 range ivar start stop body = do
   forcond <- addBlock "for.cond"
@@ -162,8 +166,8 @@ range ivar start stop body = do
   cbr test forloop forexit
 
   setBlock forloop
-  body
   ival <- load i
+  body ival
   iinc <- add ival one
   store i iinc
   br forcond
@@ -189,6 +193,17 @@ while cond body = do
 
   setBlock forexit
   return ()
+
+loopnest :: [Int] -> [Int] -> [Int] -> Codegen a -> Codegen ()
+loopnest begins ends steps body = go begins ends steps
+  where
+    go [] [] [] = body >> return ()
+    go (b:bs) (e:es) (s:ss) = do
+      i <- var i32 zero "i32"
+      let start = return $ constant i32 b
+      let stop  = return $ constant i32 e
+      range "i" start stop $ \_ ->
+        go bs es ss
 
 -- | Construction a record projection statement
 proj :: RecordType -> Operand -> Name -> Codegen Operand
