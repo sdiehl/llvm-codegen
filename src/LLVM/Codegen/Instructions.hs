@@ -1,42 +1,60 @@
 module LLVM.Codegen.Instructions (
-  and,
-  or,
-  xor,
-
-  add,
-  sub,
-  mul,
-  udiv,
-  sdiv,
-  urem,
-  srem,
-  shl,
-  lshr,
-  ashr,
-
-  call,
-  ccall,
-  alloca,
-  store,
-  load,
-  gep,
-  ref,
-
-  ptrtoint,
-
-  fcmp,
-  icmp,
-
-  cons,
-
-  br,
-  cbr,
-  ret,
-  ret_,
-  phi,
-
-  unreachable
-
+ add,
+ alloca,
+ and,
+ ashr,
+ atomicrmw,
+ bitcast,
+ br,
+ call,
+ cbr,
+ ccall,
+ cmpxchg,
+ cons,
+ extractelement,
+ extractvalue,
+ fadd,
+ fcmp,
+ fdiv,
+ fence,
+ fmul,
+ fpext,
+ fptosi,
+ fptoui,
+ fptrunc,
+ fsub,
+ gep,
+ icmp,
+ insertelement,
+ insertvalue,
+ inttoptr,
+ load,
+ lshr,
+ mul,
+ or,
+ phi,
+ ptrtoint,
+ ref,
+ ret,
+ ret_,
+ sdiv,
+ sext,
+ shl,
+ shufflevector,
+ singlethreaded,
+ sitofp,
+ srem,
+ store,
+ sub,
+ switch,
+ toArgs,
+ trunc,
+ udiv,
+ uitofp,
+ unreachable,
+ urem,
+ xor,
+ zext
 ) where
 
 import Prelude hiding (and, or)
@@ -256,8 +274,8 @@ ret :: Operand -> Codegen (Named Terminator)
 ret val = terminator $ Do $ Ret (Just val) []
 
 -- | Return void
-ret_ :: Operand -> Codegen (Named Terminator)
-ret_ val = terminator $ Do $ Ret Nothing []
+ret_ :: Codegen (Named Terminator)
+ret_ = terminator $ Do $ Ret Nothing []
 
 switch :: Operand -> Name -> [(C.Constant, Name)] -> Codegen (Named Terminator)
 switch val def pats = terminator $ Do $ Switch val def pats []

@@ -25,7 +25,7 @@ sizeOf ty =
     ptr    = IntegerType $ fromIntegral bitsize
 
 gcinit :: Codegen Operand
-gcinit    = ccall "GC_init" []
+gcinit = ccall "GC_init" []
 
 gcmalloc :: [Operand] -> Codegen Operand
 gcmalloc  = ccall "GC_malloc"

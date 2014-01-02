@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module LLVM.Codegen.Intrinsics where
 
 import LLVM.General.AST
@@ -26,7 +28,7 @@ bswap = intrinsic i64 "llvm.bswap.i64" [i64]
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- PTX Intrinsics
+-- NVPTX Intrinsics
 -------------------------------------------------------------------------------
 
 -- threadIdx
@@ -60,6 +62,3 @@ syncthreads = intrinsic void "llvm.cuda.syncthreads" []
 -- warpsize
 warpsize :: Definition
 warpsize = intrinsic void "llvm.nvvm.read.ptx.sreg.warpsize" []
-
-addIntrinsics :: [Definition] -> LLVM ()
-addIntrinsics = mapM_ addDefn
