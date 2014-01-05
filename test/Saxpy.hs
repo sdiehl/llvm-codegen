@@ -47,9 +47,9 @@ axpy ty = do
 
     n <- arg "n"
     a <- arg "a"
-    xarr <- arrayArg "x" f32 [constant i32 64]
-    yarr <- arrayArg "y" f32 [constant i32 64]
-    oarr <- arrayArg "out" f32 [constant i32 64]
+    xarr <- arrayArg "x" ty [constant i32 64]
+    yarr <- arrayArg "y" ty [constant i32 64]
+    oarr <- arrayArg "out" ty [constant i32 64]
 
     let inc = add one
     let i = avar i32 zero
@@ -67,7 +67,6 @@ axpy ty = do
 saxpy = axpy f32
 daxpy = axpy f64
 
--- Test harness allocate vectors from Haskell
 callTest :: Stage
 callTest (ctx, m, settings) = do
   x <- VM.replicate 64 (10 :: CDouble)
@@ -76,14 +75,15 @@ callTest (ctx, m, settings) = do
   let xptr = vectorArg x
   let yptr = vectorArg y
   let optr = vectorArg o
+  let args = [argCInt 64, argCDouble 3, xptr, yptr, optr]
 
-  callAs ctx m "saxpy" retVoid [
-    argCInt 64, argCDouble 3, xptr, yptr, optr]
+  -- Call the JIT'd function with the underlying pointers from the Haskell vectors.
+  callAs ctx m "saxpy" retVoid args
 
   -- Print the output array that we wrote to from LLVM
   frozen <- V.freeze o
   let arr = V.toList frozen
-  if arr == (replicate 64 (50 :: CDouble)) then
+  if arr == replicate 64 50 then
     return $ Right (ctx, m, settings)
   else
     return $ Left "output array does not match expected value"
@@ -102,9 +102,10 @@ compile m = do
 
 myPipeline :: Pipeline
 myPipeline = [
-    optimizePass 3
+    verifyPass
+  , optimizePass 3
   , showPass
-  , verifyPass
+  , showAsmPass
   , callTest
   ]
 
