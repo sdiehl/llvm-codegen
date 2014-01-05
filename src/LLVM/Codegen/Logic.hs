@@ -100,7 +100,7 @@ var ty val name = do
   setvar name ref
   return ref
 
--- | Construct an anonymous variable
+-- | Construct an unnamed variable
 avar :: Type -> Operand -> Codegen Operand
 avar ty val = do
   name <- freshName
@@ -228,13 +228,26 @@ while cond body = do
   setBlock forexit
   return ()
 
--- | Construction a loop nest
-loopnest :: [Int] -> [Int] -> [Int] -> Codegen a -> Codegen ()
+-- | Construct a multidimensional loop nest. The equivelant in C would be like the following:
+--
+-- @
+-- int i, j;
+-- for ( j = 0; j < 100; ++j ) {
+--     for ( i = 0; i < 100; ++i ) {
+--         .. loop body ..
+--     }
+-- }
+-- @
+loopnest :: [Int]      -- ^ Start bounds
+         -> [Int]      -- ^ End bounds
+         -> [Int]      -- ^ loop steps
+         -> Codegen a  -- ^ Loop body
+         -> Codegen ()
 loopnest begins ends steps body = do
     mapM lvar begins
     go begins ends steps
   where
-    lvar _ = var i32 zero "i"
+    lvar _ = avar i32 zero
     go [] [] [] = body >> return ()
     go (b:bs) (e:es) (s:ss) = do
       let start = return $ constant i32 b
