@@ -7,6 +7,7 @@ module LLVM.Codegen.Pipeline (
   defaultSettings,
   ifVerbose,
 
+  -- passes
   optimizePass,
   verifyPass,
   showPass,
@@ -33,13 +34,11 @@ type Pipeline = [Stage]
 
 -- Pipeline settings
 data Settings = Settings
-    { opt :: Word             -- ^ Optimization level
-    , inlineThreshold :: Int  -- ^ Inliner threshold
-    , verbose :: Bool         -- ^ Verbosity
+    { verbose :: Bool         -- ^ Verbosity
     } deriving (Eq, Show)
 
 defaultSettings :: Settings
-defaultSettings = Settings { opt = 3, inlineThreshold = 1000 , verbose = False}
+defaultSettings = Settings { verbose = False}
 
 -- Compose stages into a composite Stage.
 compose :: Stage -> Stage -> Stage
@@ -58,6 +57,7 @@ trace settings msg = if verbose settings
   then putStrLn msg
   else return ()
 
+-- | Do nothing pass.
 noopPass :: Stage
 noopPass = return . Right
 
@@ -94,10 +94,7 @@ showAsmPass (ctx, m, settings) = do
       putStrLn asm
       return $ Right (ctx, m, settings)
 
--- | Run the curated pass with the 'opt' level specified in the Settings.
--- @
--- optimizePass 3
--- @
+-- | Run the curated pass with the 'opt' level specified.
 optimizePass :: Word -> Stage
 optimizePass level (ctx, m, settings) = do
   trace settings "Running optimizer..."
@@ -112,7 +109,8 @@ runPipeline :: Pipeline -> Settings -> AST.Module -> IO (Either String AST.Modul
 runPipeline pline settings ast = do
   withContext $ \ctx ->
     runErrorT $ withModuleFromAST ctx ast $ \m -> do
-      -- fold the the list of Stages into a single function, sequentially from left to right
+      -- fold the the list of Stages into a single function,
+      -- sequentially from left to right
       let res = foldl1 compose pline
       final <- res (ctx, m, settings)
       case final of

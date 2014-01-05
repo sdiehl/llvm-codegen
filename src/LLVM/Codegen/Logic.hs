@@ -192,7 +192,7 @@ range ivar start stop body = do
 
   setBlock forcond
   ival <- load i
-  test <- icmp IP.SLT ival upper
+  test <- icmp IP.ULT ival upper
   cbr test forloop forexit
 
   setBlock forloop

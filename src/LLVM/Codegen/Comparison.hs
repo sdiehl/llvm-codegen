@@ -1,10 +1,17 @@
 module LLVM.Codegen.Comparison (
-  lt,
-  gt,
-  eq,
-  ne,
-  le,
-  ge
+  ilt,
+  igt,
+  ieq,
+  ine,
+  ile,
+  ige,
+
+  flt,
+  fgt,
+  feq,
+  fne,
+  fle,
+  fge
 ) where
 
 import LLVM.Codegen.Builder
@@ -26,48 +33,42 @@ import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
 -}
 
-intOperand :: Operand -> Bool
-intOperand (ConstantOperand (C.Int {})) = True
-intOperand _ = False
+-- XXX: add signed later, maybe
 
-floatOperand :: Operand -> Bool
-floatOperand (ConstantOperand (C.Float {})) = True
-floatOperand _ = False
+ilt :: Operand -> Operand -> Codegen Operand
+ilt a b = icmp IP.ULT a b
 
-lt :: Operand -> Operand -> Codegen Operand
-lt x y = case (x,y) of
-  (a,b) | intOperand a   || intOperand b   -> icmp IP.ULT a b
-  (a,b) | floatOperand a || floatOperand b -> fcmp FP.OLT a b
-  (a,b)                                    -> icmp IP.ULT a b
-  {-_ -> error "Trying to compare non-arithmetic values"-}
+igt :: Operand -> Operand -> Codegen Operand
+igt a b = icmp IP.UGT a b
 
-gt :: Operand -> Operand -> Codegen Operand
-gt x y = case (x,y) of
-  (a,b) | intOperand a   || intOperand b   -> icmp IP.UGT a b
-  (a,b) | floatOperand a || floatOperand b -> fcmp FP.OGT a b
-  _ -> error "Trying to compare non-arithmetic values"
+ieq :: Operand -> Operand -> Codegen Operand
+ieq a b = icmp IP.EQ a b
 
-eq :: Operand -> Operand -> Codegen Operand
-eq x y = case (x,y) of
-  (a,b) | intOperand a   || intOperand b   -> icmp IP.EQ a b
-  (a,b) | floatOperand a || floatOperand b -> fcmp FP.OEQ a b
-  _ -> error "Trying to compare non-arithmetic values"
+ine :: Operand -> Operand -> Codegen Operand
+ine a b = icmp IP.NE a b
 
-ne :: Operand -> Operand -> Codegen Operand
-ne x y = case (x,y) of
-  (a,b) | intOperand a   || intOperand b   -> icmp IP.NE a b
-  (a,b) | floatOperand a || floatOperand b -> fcmp FP.ONE a b
-  _ -> error "Trying to compare non-arithmetic values"
+ile :: Operand -> Operand -> Codegen Operand
+ile a b = icmp IP.ULE a b
 
-le :: Operand -> Operand -> Codegen Operand
-le x y = case (x,y) of
-  (a,b) | intOperand a   || intOperand b   -> icmp IP.ULE a b
-  (a,b) | floatOperand a || floatOperand b -> fcmp FP.OLE a b
-  _ -> error "Trying to compare non-arithmetic values"
+ige :: Operand -> Operand -> Codegen Operand
+ige a b = icmp IP.UGE a b
 
 
-ge :: Operand -> Operand -> Codegen Operand
-ge x y = case (x,y) of
-  (a,b) | intOperand a   || intOperand b   -> icmp IP.UGE a b
-  (a,b) | floatOperand a || floatOperand b -> fcmp FP.OGE a b
-  _ -> error "Trying to compare non-arithmetic values"
+
+flt :: Operand -> Operand -> Codegen Operand
+flt a b = fcmp FP.OLT a b
+
+fgt :: Operand -> Operand -> Codegen Operand
+fgt a b = fcmp FP.OGT a b
+
+feq :: Operand -> Operand -> Codegen Operand
+feq a b = fcmp FP.OEQ a b
+
+fne :: Operand -> Operand -> Codegen Operand
+fne a b = fcmp FP.ONE a b
+
+fle :: Operand -> Operand -> Codegen Operand
+fle a b = fcmp FP.OLE a b
+
+fge :: Operand -> Operand -> Codegen Operand
+fge a b = fcmp FP.UGE a b

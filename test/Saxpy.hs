@@ -50,7 +50,7 @@ axpy ty = do
     let inc = add one
     let i = avar i32 zero
 
-    for i (add one) (`lt` n) $ \ix -> do
+    for i inc (`ilt` n) $ \ix -> do
       xi <- arrayGet xarr [ix]
       yi <- arrayGet yarr [ix]
       ax <- fmul a xi

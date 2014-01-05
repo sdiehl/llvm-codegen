@@ -68,7 +68,7 @@ test_comparison = do
   def "main" i1 [(i32, "x")] $ do
     x <- getvar "x"
     xv <- load x
-    lt xv one
+    xv `ilt` one
 
 test_intrinsic :: LLVM ()
 test_intrinsic = do
@@ -100,7 +100,7 @@ test_full = do
 
   where
     inc = add one
-    cond x = x `lt` (constant i32 15)
+    cond x = x `ilt` (constant i32 15)
 
 test_loopnest :: LLVM ()
 test_loopnest = do
