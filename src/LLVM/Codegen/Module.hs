@@ -58,6 +58,7 @@ typedef :: String -> Type -> LLVM ()
 typedef nm ty = addDefn $
   TypeDefinition (Name nm) (Just ty)
 
+-- | Declare a toplevel opaque type in the current module.
 opaquetypedef :: String -> LLVM ()
 opaquetypedef nm = addDefn $
   TypeDefinition (Name nm) Nothing
@@ -85,6 +86,7 @@ external retty label argtys = do
     }
   return (Name label)
 
+-- | Declare an LLVM intrinsic.
 intrinsic :: Type -> String -> [Type] -> Definition
 intrinsic retty label argtys =
   GlobalDefinition $ functionDefaults {

@@ -49,6 +49,7 @@ withVectorPtr v m = m ptr
   where
     ptr = unsafeForeignPtrToPtr . fst $ VM.unsafeToForeignPtr0 v
 
+-- | Convert a vector into a mutable vector a libffi foreign pointer argument.
 {-# NOINLINE vectorArg #-}
 vectorArg :: Storable a => VM.MVector t a -> Arg
 vectorArg v = argPtr ptr

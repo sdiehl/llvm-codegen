@@ -35,8 +35,6 @@ import LLVM.General.AST (Operand, Type)
 -- y : Vector t
 axpy :: Type -> LLVM ()
 axpy ty = do
-  foo <- external i32 "foo" [(i32, "x")]
-
   def "saxpy" i32 [
         (i32, "n")           -- element count
       , (ty, "a")            -- scalar

@@ -1,5 +1,5 @@
 module LLVM.Codegen.GC (
-  sizeOf,
+  sizeof,
 
   gcinit,
   gcmalloc,
@@ -17,8 +17,8 @@ import qualified LLVM.General.AST.Constant as C
 
 -- XXX: make this emit an instruction
 -- | sizeof instruction
-sizeOf ::  Type -> Codegen Operand
-sizeOf ty = return $ ConstantOperand $
+sizeof ::  Type -> Codegen Operand
+sizeof ty = return $ ConstantOperand $
   C.PtrToInt (C.GetElementPtr True nullty off) ptr
   where
     off    = [C.Int 32 1]
@@ -42,4 +42,7 @@ gcdiagnostic = do
   heap  <- ccall "GC_get_heap_size" []
   free  <- ccall "GC_get_free_bytes" []
   total <- ccall "GC_get_free_bytes" []
+  -- debug "Heap: %d" heap
+  -- debug "Free: %d" free
+  -- debug "Total %d" total
   return ()
