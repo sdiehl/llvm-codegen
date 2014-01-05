@@ -9,7 +9,7 @@ module LLVM.Codegen.Pipeline (
   optimizePass,
   verifyPass,
   showPass,
-  showAssembly
+  showAsmPass
 ) where
 
 import Data.Word
@@ -42,7 +42,7 @@ defaultSettings = Settings { opt = 3, inlineThreshold = 1000 }
 compose :: Stage -> Stage -> Stage
 compose a b x = a x >>= either (return . Left) b
 
--- | Run the verififier on the IR.
+-- | Run the verification pass.
 verifyPass :: Stage
 verifyPass (ctx, m, settings) = do
   putStrLn "Verifying Module..."
@@ -52,7 +52,7 @@ verifyPass (ctx, m, settings) = do
       Left err -> throwError (strMsg $ "No verify: " ++ err)
       Right x -> return $ Right (ctx, m, settings)
 
--- | Dump the module IR to stdout.
+-- | Dump the generated IR to stdout.
 showPass :: Stage
 showPass (ctx, m, settings) = do
   putStrLn "Showing Module..."
@@ -61,8 +61,8 @@ showPass (ctx, m, settings) = do
   return $ Right (ctx, m, settings)
 
 -- | Dump the generated native assembly to stdout.
-showAssembly :: Stage
-showAssembly (ctx, m, settings) = do
+showAsmPass :: Stage
+showAsmPass (ctx, m, settings) = do
   putStrLn "Showing Assembly..."
   asm <- runErrorT $ withDefaultTargetMachine $ \tm -> do
     gen <- runErrorT $ moduleAssembly tm m
@@ -76,6 +76,9 @@ showAssembly (ctx, m, settings) = do
       return $ Right (ctx, m, settings)
 
 -- | Run the curated pass with the 'opt' level specified in the Settings.
+-- @
+-- optimizePass 3
+-- @
 optimizePass :: Word -> Stage
 optimizePass level (ctx, m, settings) = do
   putStrLn "Running optimizer..."

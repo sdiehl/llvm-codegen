@@ -11,6 +11,9 @@ module LLVM.Codegen.Types (
   -- aliases
   float,
   double,
+
+  isFloat,
+  isInt
 ) where
 
 
@@ -61,3 +64,11 @@ struct fields = StructureType True fields
 -- | Function type constructor
 fntype :: Type -> [Type] -> Type
 fntype argtys retty = FunctionType argtys retty True
+
+isFloat :: Type -> Bool
+isFloat (FloatingPointType _ _) = True
+isFloat _ = False
+
+isInt :: Type -> Bool
+isInt (IntegerType _) = True
+isInt _ = False

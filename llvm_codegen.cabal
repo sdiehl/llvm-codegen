@@ -5,7 +5,7 @@ license-file:        LICENSE
 author:              Stephen Diehl
 maintainer:          stephen.m.diehl@gmail.com
 copyright:           2012 Stephen Diehl
-Category:            Compilers, Code Generation
+Category:            Compilers/Interpreters, Code Generation
 build-type:          Simple
 cabal-version:       >=1.10
 
@@ -13,7 +13,7 @@ source-repository head
   type: git
   location: git://github.com/sdiehl/llvm-codegen.git
 
-library 
+library
   exposed-modules:
     LLVM.Codegen
     LLVM.Codegen.Module
@@ -28,20 +28,22 @@ library
     LLVM.Codegen.Pipeline
     LLVM.Codegen.Structure
     LLVM.Codegen.Array
+    LLVM.Codegen.Complex
     LLVM.Codegen.GC
     LLVM.Codegen.Intrinsics
     LLVM.Codegen.Execution
 
-  Cc-options:          
+  Cc-options:
   -- Ghc-options:        -Wall
   Hs-source-dirs:      src
 
   default-language:    Haskell2010
-  build-depends:       
+  build-depends:
       base              >= 4.6 && <4.7
     , containers        >= 0.5 && <0.6
     , mtl
     , transformers
+    , vector            >= 0.10
     , llvm-general      >= 3.3.8.2
     , llvm-general-pure >= 3.3.8.2
     , libffi            == 0.1
@@ -53,14 +55,35 @@ Test-Suite test
   Hs-source-dirs:      test
   main-is:             Test.hs
   default-language:    Haskell2010
-  build-depends:       
+  build-depends:
       base              >= 4.6 && <4.7
     , containers        >= 0.5 && <0.6
     , mtl
     , transformers
+    , vector            >= 0.10
     , llvm-general      >= 3.3.8.2
     , llvm-general-pure >= 3.3.8.2
     , llvm-codegen      == 0.1.0.0
+    , libffi            == 0.1
+    , tasty
+    , tasty-golden
+    , tasty-hunit
+
+Test-Suite saxpy
+  type:                exitcode-stdio-1.0
+  Hs-source-dirs:      test
+  main-is:             Saxpy.hs
+  default-language:    Haskell2010
+  build-depends:
+      base              >= 4.6 && <4.7
+    , containers        >= 0.5 && <0.6
+    , mtl
+    , transformers
+    , vector            >= 0.10
+    , llvm-general      >= 3.3.8.2
+    , llvm-general-pure >= 3.3.8.2
+    , llvm-codegen      == 0.1.0.0
+    , libffi            == 0.1
     , tasty
     , tasty-golden
     , tasty-hunit

@@ -4,6 +4,7 @@
 
 module LLVM.Codegen.Logic (
   def,
+  arg,
   var,
   constant,
   ife,
@@ -14,7 +15,10 @@ module LLVM.Codegen.Logic (
   proj,
   caseof,
   seqn,
+
   debug,
+  debugInt,
+  debugFloat,
 
   true,
   false,
@@ -83,6 +87,9 @@ def name retty argtys m = do
 
       -- XXX:
       -- m >>= ret
+
+arg :: String -> Codegen Operand
+arg s = getvar s >>= load
 
 -- | Construct a named variable
 var :: Type -> Operand -> String -> Codegen Operand
@@ -225,21 +232,25 @@ loopnest begins ends steps body = do
       let stop  = return $ constant i32 e
       range "i" start stop $ \_ ->
         go bs es ss
+    go _ _ _ = error "loop nest bounds are not equaly sized"
 
 -- | Construction a record projection statement
 proj :: RecordType -> Operand -> Name -> Codegen Operand
 proj rty rec field =
   case idxOf field rty of
     Nothing -> error $ "No such field name: " ++ show field
-    Just ix -> do
-      gep rec [constant i32 0, constant i32 ix]
+    Just ix -> gep rec [constant i32 0, constant i32 ix]
 
 -- | Construction a case statement
 caseof val brs = undefined
 
 -- | Construction of a sequence statement
 seqn :: Codegen a -> Codegen b -> Codegen b
-seqn a b = a >> b
+seqn = (>>)
+
+-------------------------------------------------------------------------------
+-- Debug
+-------------------------------------------------------------------------------
 
 -- | Wrapper for debugging with printf
 debug :: String -> Operand -> Codegen Operand
@@ -259,3 +270,11 @@ debug str val = do
     , G.type'       = ty
     , G.initializer = (Just cstr)
     }
+
+-- In C all float arguments to printf are automatically promoted to doubles.
+
+debugInt :: String -> Operand -> Codegen Operand
+debugInt fmt val = zext i64 val >>= debug fmt
+
+debugFloat :: String -> Operand -> Codegen Operand
+debugFloat fmt val = fpext double val >>= debug fmt

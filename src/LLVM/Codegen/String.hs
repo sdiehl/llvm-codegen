@@ -10,6 +10,7 @@ import LLVM.General.AST (Name(..))
 
 -- | Construct a toplevel reference to an immutable null-terminated global string.
 fixedstr :: [Char] -> LLVM Name
-fixedstr str = globaldef ".str" (array (len + 1) i8) (cstringz str)
+fixedstr str = globaldef strnm (array (len + 1) i8) (cstringz str)
   where
+    strnm = take 10 str
     len = fromIntegral $ length str

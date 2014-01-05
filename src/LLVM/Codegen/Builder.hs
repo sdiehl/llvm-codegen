@@ -24,7 +24,6 @@ module LLVM.Codegen.Builder (
   setvar,
 
   Codegen,
-  {-execCodegen,-}
   evalCodegen,
 ) where
 
