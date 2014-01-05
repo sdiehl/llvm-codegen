@@ -37,22 +37,10 @@ withJit c = EE.withMCJIT c optlevel model ptrelim fastins
     ptrelim  = Nothing
     fastins  = Nothing
 
-{-# NOINLINE withVectorPtrArg #-}
-withVectorPtrArg :: Storable a => VM.MVector t a -> (Arg -> IO b) -> IO b
-withVectorPtrArg v m = m (argPtr ptr)
-  where
-    ptr = unsafeForeignPtrToPtr . fst $ VM.unsafeToForeignPtr0 v
-
-{-# NOINLINE withVectorPtr #-}
-withVectorPtr :: Storable a => VM.MVector t a -> (Ptr a -> IO b) -> IO b
-withVectorPtr v m = m ptr
-  where
-    ptr = unsafeForeignPtrToPtr . fst $ VM.unsafeToForeignPtr0 v
-
 -- | Convert a vector into a mutable vector a libffi foreign pointer argument.
 {-# NOINLINE vectorArg #-}
-vectorArg :: Storable a => VM.MVector t a -> Arg
-vectorArg v = argPtr ptr
+vectorArg :: Storable a => VM.MVector t a -> IO Arg
+vectorArg v = return $ argPtr ptr
   where
     ptr = unsafeForeignPtrToPtr . fst $ VM.unsafeToForeignPtr0 v
 

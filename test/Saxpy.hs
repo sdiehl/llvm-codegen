@@ -70,9 +70,9 @@ callTest (ctx, m, settings) = do
   x <- VM.replicate 64 (10 :: CDouble)
   y <- VM.replicate 64 (20 :: CDouble)
   o <- VM.replicate 64 (0 :: CDouble)
-  let xptr = vectorArg x
-  let yptr = vectorArg y
-  let optr = vectorArg o
+  xptr <- vectorArg x
+  yptr <- vectorArg y
+  optr <- vectorArg o
   let args = [argCInt 64, argCDouble 3, xptr, yptr, optr]
 
   -- Call the JIT'd function with the underlying pointers from the Haskell vectors.
