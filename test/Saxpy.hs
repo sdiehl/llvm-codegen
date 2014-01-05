@@ -52,7 +52,7 @@ axpy ty = do
     oarr <- arrayArg "out" f32 [constant i32 64]
 
     let inc = add one
-    let i = var i32 zero "i"
+    let i = avar i32 zero
 
     for i (add one) (`lt` n) $ \ix -> do
       xi <- arrayGet xarr [ix]

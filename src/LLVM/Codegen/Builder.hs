@@ -20,6 +20,7 @@ module LLVM.Codegen.Builder (
   global,
   fn,
 
+  freshName,
   getvar,
   setvar,
 
@@ -110,6 +111,9 @@ fresh = do
   i <- gets count
   modify $ \s -> s { count = 1 + i }
   return $ i + 1
+
+freshName :: Codegen Name
+freshName = UnName <$> fresh
 
 -- | Return the current basic block
 current :: Codegen BlockState

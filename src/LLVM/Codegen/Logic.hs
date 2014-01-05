@@ -6,6 +6,7 @@ module LLVM.Codegen.Logic (
   def,
   arg,
   var,
+  avar,
   constant,
   ife,
   for,
@@ -97,6 +98,14 @@ var ty val name = do
   ref <- alloca ty
   store ref val
   setvar name ref
+  return ref
+
+-- | Construct an anonymous variable
+avar :: Type -> Operand -> Codegen Operand
+avar ty val = do
+  name <- freshName
+  ref <- alloca ty
+  store ref val
   return ref
 
 {-constant :: Type -> (forall a. Num a => a) -> Operand-}
