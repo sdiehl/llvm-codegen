@@ -2,8 +2,6 @@
 
 module Main where
 
-import System.IO
-
 import Control.Applicative
 
 import Test.Tasty
@@ -55,9 +53,9 @@ axpy ty = do
     for i (add one) (`lt` n) $ \ix -> do
       xi <- arrayGet xarr [ix]
       yi <- arrayGet yarr [ix]
-      ax  <- fmul a xi
-      sum <- fadd ax yi
-      arraySet oarr [ix] sum
+      ax <- fmul a xi
+      py <- fadd ax yi
+      arraySet oarr [ix] py
 
     return zero
 
@@ -108,9 +106,7 @@ myPipeline = [
   ]
 
 main :: IO ()
-main = do
-  hSetBuffering stdout NoBuffering
-  defaultMain tests
+main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [unitTests]

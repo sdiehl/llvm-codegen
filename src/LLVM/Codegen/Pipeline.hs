@@ -5,6 +5,7 @@ module LLVM.Codegen.Pipeline (
 
   Settings(..),
   defaultSettings,
+  ifVerbose,
 
   optimizePass,
   verifyPass,
@@ -30,22 +31,40 @@ type Ctx = (Context, Module, Settings)
 type Stage = Ctx -> IO (Either String Ctx)
 type Pipeline = [Stage]
 
+-- Pipeline settings
 data Settings = Settings
     { opt :: Word             -- ^ Optimization level
     , inlineThreshold :: Int  -- ^ Inliner threshold
+    , verbose :: Bool         -- ^ Verbosity
     } deriving (Eq, Show)
 
 defaultSettings :: Settings
-defaultSettings = Settings { opt = 3, inlineThreshold = 1000 }
+defaultSettings = Settings { opt = 3, inlineThreshold = 1000 , verbose = False}
 
 -- Compose stages into a composite Stage.
 compose :: Stage -> Stage -> Stage
 compose a b x = a x >>= either (return . Left) b
 
+-- Run the stage only if verobse is toggled True.
+ifVerbose :: Stage -> Stage
+ifVerbose pass opts@(ctx, m, settings) =
+  if verbose  settings then
+    pass opts
+  else
+    noopPass opts
+
+trace :: Settings -> String -> IO ()
+trace settings msg = if verbose settings
+  then putStrLn msg
+  else return ()
+
+noopPass :: Stage
+noopPass = return . Right
+
 -- | Run the verification pass.
 verifyPass :: Stage
 verifyPass (ctx, m, settings) = do
-  putStrLn "Verifying Module..."
+  trace settings "Verifying Module..."
   withPassManager defaultCuratedPassSetSpec $ \pm -> do
     valid <- runErrorT $ verify m
     case valid of
@@ -55,7 +74,7 @@ verifyPass (ctx, m, settings) = do
 -- | Dump the generated IR to stdout.
 showPass :: Stage
 showPass (ctx, m, settings) = do
-  putStrLn "Showing Module..."
+  trace settings "Showing Module..."
   s <- moduleString m
   putStrLn s
   return $ Right (ctx, m, settings)
@@ -63,7 +82,7 @@ showPass (ctx, m, settings) = do
 -- | Dump the generated native assembly to stdout.
 showAsmPass :: Stage
 showAsmPass (ctx, m, settings) = do
-  putStrLn "Showing Assembly..."
+  trace settings "Showing Assembly..."
   asm <- runErrorT $ withDefaultTargetMachine $ \tm -> do
     gen <- runErrorT $ moduleAssembly tm m
     case  gen of
@@ -81,7 +100,7 @@ showAsmPass (ctx, m, settings) = do
 -- @
 optimizePass :: Word -> Stage
 optimizePass level (ctx, m, settings) = do
-  putStrLn "Running optimizer..."
+  trace settings "Running optimizer..."
   let passes = defaultCuratedPassSetSpec { optLevel = Just level }
   withPassManager passes $ \pm -> do
     runPassManager pm m

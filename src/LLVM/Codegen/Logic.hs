@@ -238,23 +238,25 @@ while cond body = do
 --     }
 -- }
 -- @
-loopnest :: [Int]      -- ^ Start bounds
-         -> [Int]      -- ^ End bounds
-         -> [Int]      -- ^ loop steps
-         -> Codegen a  -- ^ Loop body
+loopnest :: [Int]                     -- ^ Start bounds
+         -> [Int]                     -- ^ End bounds
+         -> [Int]                     -- ^ loop steps
+         -> ([Operand] -> Codegen a)  -- ^ Loop body
          -> Codegen ()
 loopnest begins ends steps body = do
-    mapM lvar begins
-    go begins ends steps
+    -- Create the iteration variables
+    ivars <- mapM makeIVar begins
+    -- Build up the loops up recursively
+    go ivars begins ends steps
   where
-    lvar _ = avar i32 zero
-    go [] [] [] = body >> return ()
-    go (b:bs) (e:es) (s:ss) = do
+    makeIVar _ = avar i32 zero >>= load
+    go ivars [] [] [] = (body ivars) >> return ()
+    go ivars (b:bs) (e:es) (s:ss) = do
       let start = return $ constant i32 b
       let stop  = return $ constant i32 e
       range "i" start stop $ \_ ->
-        go bs es ss
-    go _ _ _ = error "loop nest bounds are not equaly sized"
+        go ivars bs es ss
+    go _ _ _ _ = error "loop nest bounds are not equaly sized"
 
 -- | Construction a record projection statement
 proj :: RecordType -> Operand -> Name -> Codegen Operand

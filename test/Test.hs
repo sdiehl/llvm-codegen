@@ -2,8 +2,6 @@
 
 module Main where
 
-import System.IO
-
 import Control.Applicative
 
 import Test.Tasty
@@ -106,11 +104,11 @@ test_full = do
 
 test_loopnest :: LLVM ()
 test_loopnest = do
-  foo <- external i32 "foo" []
+  foo <- external i32 "foo" [(i32, "i"), (i32, "j")]
 
   def "main" i32 [] $ do
-    loopnest [0,0] [10,20] [1,1] $ do
-      call (fn foo) []
+    loopnest [0,0] [10,20] [1,1] $ \ivars -> do
+      call (fn foo) ivars
     return zero
 
 -------------------------------------------------------------------------------
@@ -119,24 +117,24 @@ test_loopnest = do
 
 myPipeline :: Pipeline
 myPipeline = [
-    {-showPass-}
-    verifyPass
-  {-, optimizePass 3-}
-  {-, showPass-}
+    ifVerbose showPass
+  , verifyPass
+  , ifVerbose (optimizePass 3)
+  , ifVerbose showPass
   ]
 
 compile :: LLVM a -> IO ()
 compile m = do
   let ast = runLLVM (emptyModule "test module") m
-  result <- runPipeline myPipeline defaultSettings ast
+  result <- runPipeline myPipeline settings ast
   case result of
     Left a -> print a
     Right b -> return ()
+  where
+    settings = defaultSettings { verbose = False }
 
 main :: IO ()
-main = do
-  hSetBuffering stdout NoBuffering
-  defaultMain tests
+main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [unitTests]
