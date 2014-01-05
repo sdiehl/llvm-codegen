@@ -1,4 +1,8 @@
-module LLVM.Codegen.Execution where
+module LLVM.Codegen.Execution (
+  withJit,
+  vectorArg,
+  callAs
+) where
 
 import Control.Monad.Error
 
@@ -50,15 +54,6 @@ vectorArg :: Storable a => VM.MVector t a -> Arg
 vectorArg v = argPtr ptr
   where
     ptr = unsafeForeignPtrToPtr . fst $ VM.unsafeToForeignPtr0 v
-
-runArray :: FunPtr a -> IO ()
-runArray fn = do
-  v <- VM.replicate 64 (32 :: CInt)
-  withVectorPtrArg v $ \arr -> do
-    callFFI fn retVoid [arr]
-    frozen <- V.freeze v
-    print $ V.toList frozen
-  return ()
 
 -- | Call a JIT'd function as the specified type signature.
 callAs :: Context -> Module -> String -> RetType a -> [Arg] -> IO a
