@@ -6,7 +6,8 @@ module LLVM.Codegen.Array (
   asArray,
 
   arrayArg,
-  arrayPtr,
+  arrayPtrC,
+  arrayPtrF,
   arraySet,
   arrayGet
 ) where
@@ -55,9 +56,20 @@ asArray arr ty shape =
   where
     strides = []
 
--- | Calculate the pointer for the multidimensional C contiguous array with given shape.
-arrayPtr :: Array -> [Operand] -> Codegen Operand
-arrayPtr arr ix = do
+
+-- | Generate instructions to calculate the pointer for the multidimensional C contiguous array with given
+-- shape with for a given index.
+--
+-- @
+-- Dim   : d
+-- Shape : D = D_1 × D_2 ... × D_d
+-- Index : I = (I_0, I_1, ... I_d)
+--
+-- offset(D, I) = \sum_{k=1}^d \left( \prod_{l=k+1}^d D_l \right) I_k
+-- @
+
+arrayPtrC :: Array -> [Operand] -> Codegen Operand
+arrayPtrC arr ix = do
   let el = constant i32 1
   let nullel = cons $ cnull i32
   steps <- forM [0..length sh] $ \i -> do
@@ -66,9 +78,35 @@ arrayPtr arr ix = do
   dat <- load (arrValue arr)
   gep dat [pos]
   where
-    ty = arrType arr
     sh = arrShape arr
     offset p (x,y) = mul x y >>= add p
+
+-- | Generate instructions to calculate the pointer for the multidimensional Fotran contiguous array with
+-- given shape with for a given index.
+--
+-- @
+-- Dim   : d
+-- Shape : D = D_1 × D_2 ... × D_d
+-- Index : I = (I_0, I_1, ... I_d)
+--
+-- offset(D, I) = \sum_{k=1}^d \left( \prod_{\l=1}^{k-1} D_l \right) I_k
+-- @
+
+arrayPtrF :: Array -> [Operand] -> Codegen Operand
+arrayPtrF arr ix = do
+  let el = constant i32 1
+  let nullel = cons $ cnull i32
+  steps <- forM [0..length sh] $ \i -> do
+    foldM mul el (take i sh)
+  pos <- foldM offset nullel (zip ix steps)
+  dat <- load (arrValue arr)
+  gep dat [pos]
+  where
+    sh = arrShape arr
+    offset p (x,y) = mul x y >>= add p
+
+-- C contiguous by default
+arrayPtr = arrayPtrC
 
 -- | Set an index of an array to a value
 arraySet :: Array -> [Operand] -> Operand -> Codegen ()

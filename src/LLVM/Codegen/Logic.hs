@@ -277,13 +277,13 @@ seqn = (>>)
 -------------------------------------------------------------------------------
 
 -- | Wrapper for debugging with printf
-debug :: String -> Operand -> Codegen Operand
-debug str val = do
+debug :: String -> [Operand] -> Codegen Operand
+debug str vals = do
   addGlobal defn
   addGlobal printf
 
   fmt <- gep (global strnm) [zero, zero]
-  call (fn "printf") [fmt, val]
+  call (fn "printf") (fmt : vals)
   where
     ty    = (array (len + 1) i8)
     cstr  = cstringz str
@@ -298,7 +298,11 @@ debug str val = do
 -- In C all float arguments to printf are automatically promoted to doubles.
 
 debugInt :: String -> Operand -> Codegen Operand
-debugInt fmt val = zext i64 val >>= debug fmt
+debugInt fmt val = do
+  cval <- zext i64 val
+  debug fmt [cval]
 
 debugFloat :: String -> Operand -> Codegen Operand
-debugFloat fmt val = fpext double val >>= debug fmt
+debugFloat fmt val = do
+  cval <- fpext double val
+  debug fmt [cval]
