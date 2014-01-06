@@ -30,6 +30,7 @@ library
     LLVM.Codegen.Array
     LLVM.Codegen.Complex
     LLVM.Codegen.GC
+    LLVM.Codegen.Boxed
     LLVM.Codegen.Intrinsics
     LLVM.Codegen.Execution
 

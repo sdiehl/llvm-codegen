@@ -37,7 +37,7 @@ withJit c = EE.withMCJIT c optlevel model ptrelim fastins
     ptrelim  = Nothing
     fastins  = Nothing
 
--- | Convert a vector into a mutable vector a libffi foreign pointer argument.
+-- | Convert a mutable vector into a libffi foreign pointer argument.
 {-# NOINLINE vectorArg #-}
 vectorArg :: Storable a => VM.MVector t a -> IO Arg
 vectorArg v = return $ argPtr ptr

@@ -14,6 +14,7 @@ import LLVM.Codegen.NameSupply
 import LLVM.Codegen.Builder
 import LLVM.Codegen.Module
 import LLVM.Codegen.GC
+import LLVM.Codegen.Boxed
 import LLVM.Codegen.Intrinsics
 import LLVM.Codegen.Execution
 import LLVM.Codegen.String

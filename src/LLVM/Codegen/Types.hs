@@ -53,6 +53,10 @@ char = i8
 void :: Type
 void = VoidType
 
+-- | Void type
+voidptr :: Type
+voidptr = PointerType i8 (AddrSpace 0)
+
 -- | Pointer type constructor
 pointer :: Type -> Type
 pointer ty = PointerType ty (AddrSpace 0)
