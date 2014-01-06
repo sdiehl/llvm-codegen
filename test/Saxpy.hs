@@ -2,8 +2,6 @@
 
 module Main where
 
-import Control.Applicative
-
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.Golden
@@ -32,14 +30,13 @@ import LLVM.General.AST (Operand, Type)
 -- x : Vector t
 -- y : Vector t
 axpy :: Type -> LLVM ()
-axpy ty = do
-  def "saxpy" i32 [
-        (i32, "n")           -- element count
-      , (ty, "a")            -- scalar
-      , (pointer ty, "x")    -- vector x
-      , (pointer ty, "y")    -- vector y
-      , (pointer ty, "out")  -- vector y
-      ] $ do
+axpy ty = def "saxpy" i32
+    [ (i32, "n")           -- element count
+    , (ty, "a")            -- scalar
+    , (pointer ty, "x")    -- vector x
+    , (pointer ty, "y")    -- vector y
+    , (pointer ty, "out")  -- vector y
+    ] $ do
 
     n <- arg "n"
     a <- arg "a"
@@ -80,9 +77,9 @@ callTest (ctx, m, settings) = do
   frozen <- V.freeze o
   let arr = V.toList frozen
   if arr == replicate 64 50 then
-    return $ Right (ctx, m, settings)
+    Right (ctx, m, settings)
   else
-    return $ Left "output array does not match expected value"
+    Left "output array does not match expected value"
 
 compile :: LLVM a -> IO ()
 compile m = do
