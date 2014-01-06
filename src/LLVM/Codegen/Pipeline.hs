@@ -15,6 +15,7 @@ module LLVM.Codegen.Pipeline (
 ) where
 
 import Data.Word
+import Data.List
 
 import Control.Monad.Error
 
@@ -24,9 +25,9 @@ import LLVM.General.CodeModel
 import LLVM.General.Module as Mod
 import qualified LLVM.General.AST as AST
 
-import LLVM.General.PassManager
-import LLVM.General.Transforms
 import LLVM.General.Analysis
+import LLVM.General.Transforms
+import LLVM.General.PassManager
 
 type Ctx = (Context, Module, Settings)
 type Stage = Ctx -> IO (Either String Ctx)
@@ -111,7 +112,7 @@ runPipeline pline settings ast = do
     runErrorT $ withModuleFromAST ctx ast $ \m -> do
       -- fold the the list of Stages into a single function,
       -- sequentially from left to right
-      let res = foldl1 compose pline
+      let res = foldl1' compose pline
       final <- res (ctx, m, settings)
       case final of
         Left err -> throwError (strMsg err)

@@ -44,7 +44,7 @@ testFor :: LLVM ()
 testFor = do
   foo <- external i32 "foo" []
 
-  def "forloop" i32 [] $
+  def "forloop" i32 [] $ do
     for i inc (const true) $ \_ ->
       for j inc (const true) $ \_ ->
         call (fn foo) []
@@ -73,7 +73,6 @@ testComparison =
 testIntrinsic :: LLVM ()
 testIntrinsic = do
   llsqrt <- llintrinsic I.sqrt
-  tixx <- llintrinsic I.tixx
 
   def "main" f64 [] $ do
     let x = constant f64 2
@@ -82,7 +81,7 @@ testIntrinsic = do
 testDebug :: LLVM ()
 testDebug =
   def "main" i32 [] $
-    debug "%i" x
+    debug "%i" [x]
   where
     x = constant i32 42
 
@@ -95,7 +94,7 @@ testFull =
     for i inc cond $ \ix ->
       for j inc cond $ \jx -> do
         sum <- add ix jx
-        debug "%i" sum
+        debug "%i" [sum]
     return zero
 
   where
@@ -119,7 +118,7 @@ myPipeline :: Pipeline
 myPipeline = [
     ifVerbose showPass
   , verifyPass
-  , ifVerbose (optimizePass 3)
+  , ifVerbose $ optimizePass 3
   , ifVerbose showPass
   ]
 

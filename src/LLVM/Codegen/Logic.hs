@@ -68,7 +68,7 @@ one = constant i32 1
 
 -- | Construct a toplevel function.
 def :: String -> Type -> [(Type, String)] -> Codegen Operand -> LLVM ()
-def name retty argtys m = do
+def name retty argtys body = do
     mapM addDefn globals
     define retty name argtys blocks
   where
@@ -79,16 +79,9 @@ def name retty argtys m = do
         avar <- (a ++ ".addr") `named` alloca ty
         store avar (local (Name a))
         setvar a avar
-      mval <- m
-      hasTerm <- getTerm
-      -- Set the terminator to the resulting value if not explictly set.
-      case hasTerm of
-        Just x  -> return ()
-        Nothing -> ret mval >> return ()
+      body >>= ret
 
-      -- XXX:
-      -- m >>= ret
-
+-- | Retrieve the value of a locally named variable.
 arg :: String -> Codegen Operand
 arg s = getvar s >>= load
 
