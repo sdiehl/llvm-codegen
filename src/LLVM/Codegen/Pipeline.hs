@@ -1,6 +1,7 @@
 module LLVM.Codegen.Pipeline (
   Pipeline,
   Stage,
+  Check,
   runPipeline,
 
   Settings(..),
@@ -8,6 +9,7 @@ module LLVM.Codegen.Pipeline (
   ifVerbose,
 
   -- passes
+  condPass,
   optimizePass,
   verifyPass,
   showPass,
@@ -30,6 +32,7 @@ import LLVM.General.Transforms
 import LLVM.General.PassManager
 
 type Ctx = (Context, Module, Settings)
+type Check = Ctx -> IO Bool
 type Stage = Ctx -> IO (Either String Ctx)
 type Pipeline = [Stage]
 
@@ -71,6 +74,14 @@ verifyPass (ctx, m, settings) = do
     case valid of
       Left err -> throwError (strMsg $ "No verify: " ++ err)
       Right x -> return $ Right (ctx, m, settings)
+
+condPass :: (Ctx -> IO Bool) -> Stage
+condPass test opts = do
+  tval <- test opts
+  if tval then
+    return $ Right opts
+  else
+    throwError (strMsg "Failed condition.")
 
 -- | Dump the generated IR to stdout.
 showPass :: Stage

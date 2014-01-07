@@ -6,6 +6,8 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.Golden
 
+import Utils
+
 import Foreign.LibFFI
 import Foreign.C.Types
 
@@ -19,9 +21,12 @@ import LLVM.Codegen.Pipeline
 import LLVM.Codegen.Structure
 import LLVM.Codegen.Array
 import LLVM.Codegen.Execution
-import qualified LLVM.Codegen.Intrinsics as I
 
 import LLVM.General.AST (Operand, Type)
+
+-------------------------------------------------------------------------------
+-- Modules
+-------------------------------------------------------------------------------
 
 -- saxpy [t] α x y out =
 --  out <- α * x + y
@@ -30,7 +35,8 @@ import LLVM.General.AST (Operand, Type)
 -- x : Vector t
 -- y : Vector t
 axpy :: Type -> LLVM ()
-axpy ty = def "saxpy" i32
+axpy ty =
+  def "saxpy" i32
     [ (i32, "n")           -- element count
     , (ty, "a")            -- scalar
     , (pointer ty, "x")    -- vector x
@@ -56,51 +62,78 @@ axpy ty = def "saxpy" i32
 
     return zero
 
-
 saxpy = axpy f32
 daxpy = axpy f64
 
-callTest :: Stage
-callTest (ctx, m, settings) = do
+diag :: LLVM ()
+diag = do
+  def "diag" i32
+    [ (pointer f64, "x") ] $ do
+
+    let n = constant i32 8
+    xarr <- arrayArg "x" f64 [constant i32 8, constant i32 8]
+
+    let inc = add one
+    let i = avar i32 zero
+
+    for i inc (`ilt` n) $ \ix -> do
+      ixf <- uitofp f64 ix
+      let val = constant f64 1
+      arraySet xarr [ix, ix] val
+
+    return zero
+
+-------------------------------------------------------------------------------
+-- Tests
+-------------------------------------------------------------------------------
+
+diagTest :: Check
+diagTest (ctx, m, _) = do
+  x <- VM.replicate 64 (0 :: CDouble)
+  xptr <- vectorArg x
+
+  callAs ctx m "diag" retVoid [xptr]
+  frozen <- V.freeze x
+  let output = V.toList frozen
+  return $ output == (diag 8)
+
+  where
+    diag n = [if i == j then 1 else 0 | i <- [1..n], j <- [1..n]]
+
+daxpyTest :: Check
+daxpyTest (ctx, m, _) = do
   x <- VM.replicate 64 (10 :: CDouble)
   y <- VM.replicate 64 (20 :: CDouble)
   o <- VM.replicate 64 (0 :: CDouble)
+
   xptr <- vectorArg x
   yptr <- vectorArg y
   optr <- vectorArg o
+
   let args = [argCInt 64, argCDouble 3, xptr, yptr, optr]
-
-  -- Call the JIT'd function with the underlying pointers from the Haskell vectors.
   callAs ctx m "saxpy" retVoid args
-
-  -- Print the output array that we wrote to from LLVM
+  let expected = replicate 64 50
   frozen <- V.freeze o
-  let arr = V.toList frozen
-  if arr == replicate 64 50 then
-    Right (ctx, m, settings)
-  else
-    Left "output array does not match expected value"
+  let output = V.toList frozen
+  return $ output == expected
 
-compile :: LLVM a -> IO ()
-compile m = do
-  let ast = runLLVM (emptyModule "test module") m
-  result <- runPipeline myPipeline defaultSettings ast
-  case result of
-    Left a -> print a
-    Right b -> return ()
+{-saxpyTest :: Check-}
+saxpyTest (ctx, m, _) = do
+  x <- VM.replicate 64 (10 :: CFloat)
+  y <- VM.replicate 64 (20 :: CFloat)
+  o <- VM.replicate 64 (0 :: CFloat)
 
--------------------------------------------------------------------------------
--- Test Runner
--------------------------------------------------------------------------------
+  xptr <- vectorArg x
+  yptr <- vectorArg y
+  optr <- vectorArg o
 
-myPipeline :: Pipeline
-myPipeline = [
-    verifyPass
-  , optimizePass 3
-  , showPass
-  , showAsmPass
-  , callTest
-  ]
+  let args = [argCInt 64, argCFloat 3, xptr, yptr, optr]
+  callAs ctx m "saxpy" retVoid args
+  let expected = replicate 64 50
+  frozen <- V.freeze o
+  let output = V.toList frozen
+  return $ output == expected
+
 
 main :: IO ()
 main = defaultMain tests
@@ -110,6 +143,7 @@ tests = testGroup "Tests" [unitTests]
 
 unitTests = testGroup "Pipeline tests"
   [
-  testCase "test_daxpy" $ compile daxpy
-  --, testCase "test_saxpy" $ compile saxpy
+    testCase "test_daxpy" $ compileTest saxpyTest saxpy
+  , testCase "test_daxpy" $ compileTest daxpyTest daxpy
+  , testCase "test_diag" $ compileTest diagTest diag
   ]

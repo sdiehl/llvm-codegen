@@ -59,7 +59,7 @@ testRecord :: LLVM ()
 testRecord = do
   rec <- record "myrecord" [("kirk", i32), ("spock", f32)]
   def "main" i32 [] $ do
-    x <- alloca (recType rec)
+    x <- allocaRecord rec
     xp <- proj rec x "kirk"
     load xp
 
