@@ -110,6 +110,7 @@ constant ty val
   | ty == i64 = cons $ ci64 $ fromIntegral val
   | ty == f32 = cons $ cf32 $ fromIntegral val
   | ty == f64 = cons $ cf64 $ fromIntegral val
+  | otherwise = error "Constant not supported"
 
 -- | Construction a if/then/else statement
 ife :: Operand -> Codegen Operand -> Codegen Operand -> Codegen Operand
@@ -252,7 +253,7 @@ loopnest begins ends steps body = do
     go _ _ _ _ = error "loop nest bounds are not equaly sized"
 
 -- | Construction a record projection statement
-proj :: RecordType -> Operand -> Name -> Codegen Operand
+proj :: Record -> Operand -> Name -> Codegen Operand
 proj rty rec field =
   case idxOf field rty of
     Nothing -> error $ "No such field name: " ++ show field

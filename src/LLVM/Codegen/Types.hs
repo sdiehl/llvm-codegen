@@ -4,6 +4,7 @@ module LLVM.Codegen.Types (
   intp,
   intp_ptr,
   void,
+  voidptr,
   pointer,
   array,
   vector,

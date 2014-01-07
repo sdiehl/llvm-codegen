@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+
 module LLVM.Codegen (
   module LLVM.Codegen.Module,
   module LLVM.Codegen.Logic,

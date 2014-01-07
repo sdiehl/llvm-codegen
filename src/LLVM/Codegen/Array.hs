@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
+
 module LLVM.Codegen.Array (
   Order(..),
   Array(..),
@@ -11,6 +13,7 @@ module LLVM.Codegen.Array (
   arraySet,
   arrayGet
 ) where
+
 
 import Control.Monad
 

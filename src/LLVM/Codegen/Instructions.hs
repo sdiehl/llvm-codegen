@@ -25,6 +25,7 @@ module LLVM.Codegen.Instructions (
  fsub,
  gep,
  icmp,
+ indirectbr,
  insertelement,
  insertvalue,
  inttoptr,
@@ -276,6 +277,9 @@ ret val = terminator $ Do $ Ret (Just val) []
 -- | Return void
 ret_ :: Codegen (Named Terminator)
 ret_ = terminator $ Do $ Ret Nothing []
+
+indirectbr :: Operand -> [Name] -> Codegen (Named Terminator)
+indirectbr val dsts = terminator $ Do $ IndirectBr val dsts []
 
 switch :: Operand -> Name -> [(C.Constant, Name)] -> Codegen (Named Terminator)
 switch val def pats = terminator $ Do $ Switch val def pats []
