@@ -5,6 +5,7 @@ module LLVM.Codegen.Instructions (
  ashr,
  atomicrmw,
  bitcast,
+ blockaddress,
  br,
  call,
  cbr,
@@ -286,6 +287,9 @@ switch val def pats = terminator $ Do $ Switch val def pats []
 
 unreachable :: Codegen (Named Terminator)
 unreachable = terminator $ Do $ Unreachable []
+
+blockaddress :: Name -> Name -> Codegen Operand
+blockaddress fn block = return $ ConstantOperand $ C.BlockAddress fn block
 
 ---------------------------------------------------------------------------------
 -- Vector Operations

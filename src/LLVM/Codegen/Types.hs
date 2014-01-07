@@ -72,7 +72,7 @@ vector width ty = VectorType width ty
 
 -- | Struct type constructor
 struct :: [Type] -> Type
-struct fields = StructureType True fields
+struct fields = StructureType False fields
 
 -- | Function type constructor
 fntype :: Type -> [Type] -> Type
