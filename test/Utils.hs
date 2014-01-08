@@ -10,5 +10,5 @@ import LLVM.Codegen.Execution
 compileTest :: Check -> LLVM a -> IO ()
 compileTest test m = do
   let ast = runLLVM (emptyModule "test module") m
-  runPipeline [condPass test] defaultSettings ast
+  runPipeline [condStage test] defaultSettings ast
   return ()

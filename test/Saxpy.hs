@@ -89,7 +89,7 @@ diag = do
 
 diagTest :: Check
 diagTest (ctx, m, _) = do
-  x <- VM.replicate 64 (0 :: CDouble)
+  x <- VM.replicate (8*8) (0 :: CDouble)
   xptr <- vectorArg x
 
   callAs ctx m "diag" retVoid [xptr]
@@ -117,7 +117,7 @@ daxpyTest (ctx, m, _) = do
   let output = V.toList frozen
   return $ output == expected
 
-{-saxpyTest :: Check-}
+saxpyTest :: Check
 saxpyTest (ctx, m, _) = do
   x <- VM.replicate 64 (10 :: CFloat)
   y <- VM.replicate 64 (20 :: CFloat)

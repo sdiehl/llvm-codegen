@@ -116,10 +116,10 @@ testLoopnest = do
 
 myPipeline :: Pipeline
 myPipeline = [
-    ifVerbose showPass
-  , verifyPass
-  , ifVerbose $ optimizePass 3
-  , ifVerbose showPass
+    ifVerbose showStage
+  , verifyStage
+  , ifVerbose $ optimizeStage 3
+  , ifVerbose showStage
   ]
 
 compile :: LLVM a -> IO ()

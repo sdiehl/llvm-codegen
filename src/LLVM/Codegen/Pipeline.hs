@@ -9,11 +9,11 @@ module LLVM.Codegen.Pipeline (
   ifVerbose,
 
   -- passes
-  condPass,
-  optimizePass,
-  verifyPass,
-  showPass,
-  showAsmPass
+  condStage,
+  optimizeStage,
+  verifyStage,
+  showStage,
+  showAsmStage
 ) where
 
 import Data.Word
@@ -54,7 +54,7 @@ ifVerbose pass opts@(ctx, m, settings) =
   if verbose  settings then
     pass opts
   else
-    noopPass opts
+    noopStage opts
 
 trace :: Settings -> String -> IO ()
 trace settings msg = if verbose settings
@@ -62,12 +62,12 @@ trace settings msg = if verbose settings
   else return ()
 
 -- | Do nothing pass.
-noopPass :: Stage
-noopPass = return . Right
+noopStage :: Stage
+noopStage = return . Right
 
 -- | Run the verification pass.
-verifyPass :: Stage
-verifyPass (ctx, m, settings) = do
+verifyStage :: Stage
+verifyStage (ctx, m, settings) = do
   trace settings "Verifying Module..."
   withPassManager defaultCuratedPassSetSpec $ \pm -> do
     valid <- runErrorT $ verify m
@@ -75,8 +75,8 @@ verifyPass (ctx, m, settings) = do
       Left err -> throwError (strMsg $ "No verify: " ++ err)
       Right x -> return $ Right (ctx, m, settings)
 
-condPass :: (Ctx -> IO Bool) -> Stage
-condPass test opts = do
+condStage :: (Ctx -> IO Bool) -> Stage
+condStage test opts = do
   tval <- test opts
   if tval then
     return $ Right opts
@@ -84,16 +84,16 @@ condPass test opts = do
     throwError (strMsg "Failed condition.")
 
 -- | Dump the generated IR to stdout.
-showPass :: Stage
-showPass (ctx, m, settings) = do
+showStage :: Stage
+showStage (ctx, m, settings) = do
   trace settings "Showing Module..."
   s <- moduleString m
   putStrLn s
   return $ Right (ctx, m, settings)
 
 -- | Dump the generated native assembly to stdout.
-showAsmPass :: Stage
-showAsmPass (ctx, m, settings) = do
+showAsmStage :: Stage
+showAsmStage (ctx, m, settings) = do
   trace settings "Showing Assembly..."
   asm <- runErrorT $ withDefaultTargetMachine $ \tm -> do
     gen <- runErrorT $ moduleAssembly tm m
@@ -107,8 +107,8 @@ showAsmPass (ctx, m, settings) = do
       return $ Right (ctx, m, settings)
 
 -- | Run the curated pass with the 'opt' level specified.
-optimizePass :: Word -> Stage
-optimizePass level (ctx, m, settings) = do
+optimizeStage :: Word -> Stage
+optimizeStage level (ctx, m, settings) = do
   trace settings "Running optimizer..."
   let passes = defaultCuratedPassSetSpec { optLevel = Just level }
   withPassManager passes $ \pm -> do
