@@ -59,14 +59,6 @@ asArray arr ty shape =
   where
     strides = []
 
--- | Calculate the element offset for a given shape.
-
--- rowMajorStrides [1,2,3,4]
--- [24,12,4,1]
---
--- rowMajorStrides [1,2,3,4]
--- [1,1,2,6]
-
 -- | Generate instructions to calculate the pointer for the multidimensional C contiguous array with given
 -- shape with for a given index.
 --
@@ -140,6 +132,14 @@ arrayArg s ty size = do
 -------------------------------------------------------------------------------
 -- Offsets Utilities
 -------------------------------------------------------------------------------
+
+-- | Calculate the element offset for a given shape.
+
+-- rowMajorStrides [1,2,3,4]
+-- [24,12,4,1]
+--
+-- rowMajorStrides [1,2,3,4]
+-- [1,1,2,6]
 
 rowMajorStrides :: [Int] -> [Int]
 rowMajorStrides = scanr (*) 1 . tail

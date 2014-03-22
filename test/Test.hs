@@ -4,9 +4,12 @@ module Main where
 
 import Control.Applicative
 
-import Test.Tasty
 import Test.Tasty.HUnit
+
 import Test.Tasty.Golden
+import Test.Tasty.Golden.Manage
+
+import Test.Tasty hiding (defaultMain)
 
 import LLVM.Codegen
 import LLVM.Codegen.Types
@@ -114,39 +117,51 @@ testLoopnest = do
 -- Test Runner
 -------------------------------------------------------------------------------
 
-myPipeline :: Pipeline
-myPipeline = [
-    ifVerbose showStage
-  , verifyStage
-  , ifVerbose $ optimizeStage 3
-  , ifVerbose showStage
+gfunctions = [
+    (testSimple     , "simple"),
+    (testMultiple   , "multiple"),
+    (testFor        , "for"),
+    (testRecord     , "record"),
+    (testComparison , "comparison"),
+    (testIntrinsic  , "intrinsic"),
+    (testDebug      , "debug"),
+    (testFull       , "full"),
+    (testLoopnest   , "loopnest")
   ]
 
-compile :: LLVM a -> IO ()
-compile m = do
-  let ast = runLLVM (emptyModule "test module") m
-  result <- runPipeline myPipeline settings ast
-  case result of
-    Left a -> print a
-    Right b -> return ()
+mkTest :: (LLVM a, TestName) -> TestTree
+mkTest (fn, tname) =
+  goldenVsFileDiff
+    tname
+    diff
+    expected
+    output
+    (runTest fn output)
   where
-    settings = defaultSettings { verbose = False }
+    expected     = "test/expected/" ++ tname ++ ".ll.expected"
+    output       = "test/output/" ++ tname ++ ".ll"
+    diff ref new = ["diff", ref, new]
 
 main :: IO ()
-main = defaultMain tests
+main = do
+  let tests = map mkTest gfunctions
+  defaultMain $ testGroup "Golden tests" tests
 
-tests :: TestTree
-tests = testGroup "Tests" [unitTests]
+runTest :: LLVM a -> FilePath -> IO ()
+runTest input output = do
+  res <- compile input
+  writeFile output res
 
-unitTests = testGroup "Pipeline tests"
-  [
-    testCase "testSimple"     $ compile testSimple
-  , testCase "testMultiple"   $ compile testMultiple
-  , testCase "testFor"        $ compile testFor
-  , testCase "testRecord"     $ compile testRecord
-  , testCase "testComparison" $ compile testComparison
-  , testCase "testIntrinsic"  $ compile testIntrinsic
-  , testCase "testDebug"      $ compile testDebug
-  , testCase "testFull"       $ compile testFull
-  , testCase "testLoopnest"   $ compile testLoopnest
+myPipeline :: Pipeline
+myPipeline = [
+    verifyStage
+  {-, optimizeStage 3-}
   ]
+
+compile :: LLVM a -> IO String
+compile m = do
+  let ast = runLLVM (emptyModule "test module") m
+  result <- runPipeline_ myPipeline settings ast
+  return (either id id result)
+  where
+    settings = defaultSettings { verbose = False }

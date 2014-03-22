@@ -3,6 +3,7 @@ module LLVM.Codegen.Pipeline (
   Stage,
   Check,
   runPipeline,
+  runPipeline_,
 
   Settings(..),
   defaultSettings,
@@ -128,3 +129,15 @@ runPipeline pline settings ast = do
       case final of
         Left err -> throwError (strMsg err)
         Right x -> moduleAST m
+
+runPipeline_ :: Pipeline -> Settings -> AST.Module -> IO (Either String String)
+runPipeline_ pline settings ast = do
+  withContext $ \ctx ->
+    runErrorT $ withModuleFromAST ctx ast $ \m -> do
+      -- fold the the list of Stages into a single function,
+      -- sequentially from left to right
+      let res = foldl1' compose pline
+      final <- res (ctx, m, settings)
+      case final of
+        Left err -> throwError (strMsg err)
+        Right x -> moduleString m
