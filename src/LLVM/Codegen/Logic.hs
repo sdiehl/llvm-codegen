@@ -101,7 +101,6 @@ avar ty val = do
   store ref val
   return ref
 
-{-constant :: Type -> (forall a. Num a => a) -> Operand-}
 constant ty val
   | ty == i1  = cons $ ci1  $ fromIntegral val
   | ty == i8  = cons $ ci8  $ fromIntegral val

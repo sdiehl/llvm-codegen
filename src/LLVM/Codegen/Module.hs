@@ -114,7 +114,7 @@ globalName (GlobalDefinition (GlobalVariable {name = x})) = x
 
 -- | Produce a reference to an LLVM intrinsic.
 llintrinsic :: Definition -> LLVM Name
-llintrinsic intr = addDefn intr >>= (\def -> return (globalName intr))
+llintrinsic intr = addDefn intr >> return (globalName intr)
 
 toParams :: [(Type, Name)] -> ([Parameter], Bool)
 toParams args = ([Parameter ty nm [] | (ty, nm) <- args], False)

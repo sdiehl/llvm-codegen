@@ -54,7 +54,7 @@ char = i8
 void :: Type
 void = VoidType
 
--- | Void type
+-- | Void pointer
 voidptr :: Type
 voidptr = PointerType i8 (AddrSpace 0)
 

@@ -30,13 +30,15 @@ bswap = intrinsic i64 "llvm.bswap.i64" [i64]
 -------------------------------------------------------------------------------
 
 -- | memcpy
-memcpy = intrinsic f64 "llvm.sin.f64" [f64]
+memcpy :: Definition
+memcpy = intrinsic f64 "llvm.memcpy" [f64]
 
 -------------------------------------------------------------------------------
 -- Lifetime Intrinsics
 -------------------------------------------------------------------------------
 
 -- | Lifetime analysis
+lifestart, lifeend, invstart, invend :: Definition
 lifestart = intrinsic void "llvm.lifetime.start" [i64, pointer i8]
 lifeend   = intrinsic void "llvm.lifetime.end" [i64, pointer i8]
 invstart  = intrinsic void "llvm.invariant.start" [i64, pointer i8]
@@ -82,5 +84,8 @@ warpsize = intrinsic void "llvm.nvvm.read.ptx.sreg.warpsize" []
 -- Misc
 -------------------------------------------------------------------------------
 
+noop :: Definition
 noop = intrinsic void "llvm.donothing" []
+
+prefetch :: Definition
 prefetch = intrinsic void "llvm.prefetch" [pointer i8, i32, i32, i32]
