@@ -59,6 +59,13 @@ asArray arr ty shape =
   where
     strides = []
 
+-- | Calculate the element offset for a given shape.
+
+-- rowMajorStrides [1,2,3,4]
+-- [24,12,4,1]
+--
+-- rowMajorStrides [1,2,3,4]
+-- [1,1,2,6]
 
 -- | Generate instructions to calculate the pointer for the multidimensional C contiguous array with given
 -- shape with for a given index.
@@ -77,15 +84,14 @@ offset p (x,y) = mul x y >>= add p
 
 arrayPtrC :: Array -> [Operand] -> Codegen Operand
 arrayPtrC arr ix = do
-  steps <- forM [0..length sh] $ \i -> do
-    foldM mul el (drop (i+1) sh)
-  pos <- foldM offset nullel (zip ix steps)
+  steps <- scanlM mul el sh
+  pos <- foldM offset zero (zip ix steps)
   dat <- load (arrValue arr)
   gep dat [pos]
   where
-    el     = constant i32 1
-    nullel = cons $ cnull i32
-    sh     = arrShape arr
+    el   = constant i32 1
+    zero = cons $ cnull i32
+    sh   = arrShape arr
 
 -- | Generate instructions to calculate the pointer for the multidimensional Fotran contiguous array with
 -- given shape with for a given index.
@@ -100,15 +106,14 @@ arrayPtrC arr ix = do
 
 arrayPtrF :: Array -> [Operand] -> Codegen Operand
 arrayPtrF arr ix = do
-  steps <- forM [0..length sh] $ \i -> do
-    foldM mul el (take i sh)
-  pos <- foldM offset nullel (zip ix steps)
+  steps <- scanrM mul el sh
+  pos <- foldM offset zero (zip ix steps)
   dat <- load (arrValue arr)
   gep dat [pos]
   where
-    el     = constant i32 1
-    nullel = cons $ cnull i32
-    sh     = arrShape arr
+    el   = constant i32 1
+    zero = cons $ cnull i32
+    sh   = arrShape arr
 
 -- C contiguous by default
 arrayPtr :: Array -> [Operand] -> Codegen Operand
@@ -131,3 +136,27 @@ arrayArg :: String -> Type -> [Operand] -> Codegen Array
 arrayArg s ty size = do
   ptr <- getvar s
   asArray ptr ty size
+
+-------------------------------------------------------------------------------
+-- Offsets Utilities
+-------------------------------------------------------------------------------
+
+rowMajorStrides :: [Int] -> [Int]
+rowMajorStrides = scanr (*) 1 . tail
+
+colMajorStrides :: [Int] -> [Int]
+colMajorStrides = init . scanl (*) 1
+
+scanlM :: (Monad m) => (a -> b -> m a) -> a -> [b] -> m [a]
+scanlM _ q0 [] = return [q0]
+scanlM f q0 (x:xs) =
+   do q2 <- f q0 x
+      qs <- scanlM f q2 xs
+      return (q0:qs)
+
+scanrM :: (Monad m) => (a -> b -> m b) -> b -> [a] -> m [b]
+scanrM _ q0 [] = return [q0]
+scanrM f q0 (x:xs) =
+   do q2 <- f x q0
+      qs <- scanrM f q2 xs
+      return (q0:qs)
