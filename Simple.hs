@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Control.Monad
@@ -22,19 +24,20 @@ simple1 =
      b = constant i32 201
 
 simple2 :: LLVM ()
-simple2 =
+simple2 = do
   def "foo" i32 [(i32, "x")] $ do
     n <- arg "x"
-    c <- add a b
-    d <- mul c n
-    return d
-  where
-     a = constant i32 100
-     b = constant i32 201
+    res <- call (fn "bar") [n]
+    return res
+
+  def "bar" i32 [(i32, "x")] $ do
+    n <- arg "x"
+    a <- mul n n
+    return a
 
 run :: Exec ()
 run = do
-  ret <- jitCall "foo" retCInt [argCInt 3]
+  ret <- jitCall "foo" retCInt [argCInt 125]
   liftIO $ print ret
   return ()
 

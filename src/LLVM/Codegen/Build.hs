@@ -4,8 +4,6 @@ import LLVM.Codegen
 import LLVM.Codegen.Pipeline
 import LLVM.Codegen.Execution
 
-import Control.Monad.State
-
 -- -------------------------------------------------------------------------------
 -- The "Very High Level API"
 -------------------------------------------------------------------------------
