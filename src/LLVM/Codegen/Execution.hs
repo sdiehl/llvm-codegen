@@ -1,10 +1,13 @@
 module LLVM.Codegen.Execution (
   withJit,
   vectorArg,
-  callAs
+  callAs,
+  jitCall,
+  jitCall_
 ) where
 
 import Control.Monad.Error
+import Control.Monad.Reader
 
 import Foreign.Ptr
 import Foreign.ForeignPtr.Unsafe
@@ -53,3 +56,13 @@ callAs ctx m fname retty args =
       case mfn of
         Nothing -> throwError (strMsg $ "No such function: " ++ fname)
         Just fn -> callFFI fn retty args >>= return
+
+-- | Call a JIT'd function within a ``Exec`` context.
+jitCall fn retty argtys = do
+  (ctx, llmod, _) <- ask
+  liftIO $ callAs ctx llmod fn retty argtys
+
+-- | Call a JIT'd function within a ``Exec`` context with no return value.
+jitCall_ fn argtys = do
+  (ctx, llmod, _) <- ask
+  liftIO $ callAs ctx llmod fn retVoid argtys

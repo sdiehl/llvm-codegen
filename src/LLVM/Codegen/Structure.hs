@@ -27,7 +27,7 @@ data Record = Record
 idxOf :: Name -> Record -> Maybe Int
 idxOf field rec = lookup field (recFields rec)
 
--- | Construct a record ( underlying is a LLVM struct ) and return the
+-- | Construct a record ( underlying is a LLVM struct ) and return the field value.
 record :: String -> Fields -> LLVM Record
 record name fields = do
   let ty    = struct (map snd fields)

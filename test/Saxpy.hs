@@ -91,12 +91,6 @@ diag = do
 -- Tests
 -------------------------------------------------------------------------------
 
-call_ :: String -> [Arg] -> Exec ()
-call_ fn args = do
-  (ctx, llmod, _) <- ask
-  liftIO $ callAs ctx llmod fn retVoid args
-  return ()
-
 diagVec :: Int -> [Int64]
 diagVec n = [if i == j then 1 else 0 | i <- [1..n], j <- [1..n]]
 
@@ -105,8 +99,7 @@ diagTest = do
   x <- liftIO $ VM.replicate (8*8) (0 :: Int64)
   xptr <- liftIO $ vectorArg x
 
-  call_ "diag" [xptr]
-
+  jitCall_ "diag" [xptr]
   frozen <- liftIO $ V.freeze x
 
   let output = V.toList frozen
@@ -125,9 +118,9 @@ daxpyTest = do
   let args = [argCInt 64, argCDouble 3, xptr, yptr, optr]
   let expected = replicate 64 50
 
-  call_ "axpy" args
-
+  jitCall_ "axpy" args
   frozen <- liftIO $ V.freeze o
+
   let output = V.toList frozen
   return $ output == expected
 
@@ -144,7 +137,7 @@ saxpyTest = do
   let args = [argCInt 64, argCFloat 3, xptr, yptr, optr]
   let expected = replicate 64 50
 
-  call_ "axpy" args
+  jitCall_ "axpy" args
   frozen <- liftIO $ V.freeze o
 
   let output = V.toList frozen

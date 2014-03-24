@@ -12,6 +12,7 @@ module LLVM.Codegen.Pipeline (
   ifVerbose,
 
   -- stages
+  noopStage,
   condStage,
   execStage,
   optimizeStage,
@@ -20,7 +21,6 @@ module LLVM.Codegen.Pipeline (
   showAsmStage
 ) where
 
-import Data.Word
 import Data.List
 
 import Control.Monad.Error
@@ -41,12 +41,6 @@ type Ctx = (Context, Module, Settings)
 -- Perform some action with the result.
 type Stage = Ctx -> IO (Either String Ctx)
 type Pipeline = [Stage]
-
-newtype Exec a = Exec { unExec :: ReaderT Ctx IO a }
-  deriving (Monad, MonadReader Ctx, MonadIO)
-
-runExec :: Exec a -> Ctx -> IO a
-runExec m ctx = runReaderT (unExec m) ctx
 
 -- Pipeline settings
 data Settings = Settings
@@ -125,10 +119,11 @@ showAsmStage (ctx, m, settings) = do
       return $ Right (ctx, m, settings)
 
 -- | Run the curated pass with the 'opt' level specified.
-optimizeStage :: Word -> Stage
+optimizeStage :: Int -> Stage
 optimizeStage level (ctx, m, settings) = do
   trace settings "Running optimizer..."
-  let passes = defaultCuratedPassSetSpec { optLevel = Just level }
+  let optlevel = fromIntegral level
+  let passes = defaultCuratedPassSetSpec { optLevel = Just optlevel }
   withPassManager passes $ \pm -> do
     runPassManager pm m
   return $ Right (ctx, m, settings)
@@ -148,13 +143,25 @@ runPipeline pline settings ast = do
         Right x -> moduleAST m
 
 -- | Run a AST through the pipeline executing arbitrary effects specified by the pipeline, and
--- finally either returning the resulting IR as a String.
-runPipeline_ :: Pipeline -> Settings -> AST.Module -> IO (Either String String)
+-- finally either returning the resulting IR or Error both as a String.
+runPipeline_ :: Pipeline -> Settings -> AST.Module -> IO String
 runPipeline_ pline settings ast = do
-  withContext $ \ctx ->
+  out <- withContext $ \ctx ->
     runErrorT $ withModuleFromAST ctx ast $ \m -> do
       let res = foldl1' compose pline
       final <- res (ctx, m, settings)
       case final of
         Left err -> throwError (strMsg err)
         Right x -> moduleString m
+  return (either id id out)
+
+-------------------------------------------------------------------------------
+-- JIT Execution Context
+-------------------------------------------------------------------------------
+
+-- JIT Execution
+newtype Exec a = Exec { unExec :: ReaderT Ctx IO a }
+  deriving (Monad, MonadReader Ctx, MonadIO)
+
+runExec :: Exec a -> Ctx -> IO a
+runExec m ctx = runReaderT (unExec m) ctx
