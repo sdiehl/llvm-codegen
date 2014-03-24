@@ -164,4 +164,4 @@ newtype Exec a = Exec { unExec :: ReaderT Ctx IO a }
   deriving (Monad, MonadReader Ctx, MonadIO)
 
 runExec :: Exec a -> Ctx -> IO a
-runExec m ctx = runReaderT (unExec m) ctx
+runExec = runReaderT . unExec

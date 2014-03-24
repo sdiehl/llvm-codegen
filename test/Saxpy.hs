@@ -6,8 +6,6 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.Golden
 
-import Utils
-
 import Data.Int
 import Foreign.LibFFI
 import Foreign.C.Types
@@ -22,6 +20,7 @@ import LLVM.Codegen.Pipeline
 import LLVM.Codegen.Structure
 import LLVM.Codegen.Array
 import LLVM.Codegen.Execution
+import LLVM.Codegen.Build
 
 import LLVM.General.AST (Operand, Type)
 

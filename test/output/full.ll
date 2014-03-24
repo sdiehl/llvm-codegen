@@ -1,4 +1,4 @@
-; ModuleID = 'test module'
+; ModuleID = 'simple module'
 
 @"%i" = global [3 x i8] c"%i\00"
 

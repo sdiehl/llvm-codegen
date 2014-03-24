@@ -1,4 +1,4 @@
-; ModuleID = 'test module'
+; ModuleID = 'simple module'
 
 ; Function Attrs: nounwind readonly
 declare double @llvm.sqrt.f64(double) #0

@@ -1,4 +1,4 @@
-; ModuleID = 'test module'
+; ModuleID = 'simple module'
 
 declare i32 @foo(i32, i32)
 

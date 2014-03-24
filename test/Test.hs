@@ -18,6 +18,7 @@ import LLVM.Codegen.Pipeline
 import LLVM.Codegen.Structure
 import LLVM.Codegen.Array
 import LLVM.Codegen.Execution
+import LLVM.Codegen.Build
 import qualified LLVM.Codegen.Intrinsics as I
 
 import LLVM.General.AST (Operand)
@@ -136,7 +137,7 @@ mkTest (fn, tname) =
     diff
     expected
     output
-    (runTest fn output)
+    (logSimple_ output fn)
   where
     expected     = "test/expected/" ++ tname ++ ".ll.expected"
     output       = "test/output/" ++ tname ++ ".ll"
@@ -146,22 +147,3 @@ main :: IO ()
 main = do
   let tests = map mkTest gfunctions
   defaultMain $ testGroup "Golden tests" tests
-
-runTest :: LLVM a -> FilePath -> IO ()
-runTest input output = do
-  res <- compile input
-  writeFile output res
-
-myPipeline :: Pipeline
-myPipeline = [
-    verifyStage
-  {-, optimizeStage 3-}
-  ]
-
-compile :: LLVM a -> IO String
-compile m = do
-  let ast = runLLVM (emptyModule "test module") m
-  result <- runPipeline_ myPipeline settings ast
-  return (either id id result)
-  where
-    settings = defaultSettings { verbose = False }

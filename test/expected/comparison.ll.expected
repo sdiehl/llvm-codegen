@@ -1,4 +1,4 @@
-; ModuleID = 'test module'
+; ModuleID = 'simple module'
 
 define i1 @main(i32 %x) {
 entry:
