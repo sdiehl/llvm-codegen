@@ -1,7 +1,9 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module LLVM.Codegen.Pipeline (
   Pipeline,
   Stage,
-  Check,
+  Exec,
   runPipeline,
   runPipeline_,
 
@@ -9,8 +11,9 @@ module LLVM.Codegen.Pipeline (
   defaultSettings,
   ifVerbose,
 
-  -- passes
+  -- stages
   condStage,
+  execStage,
   optimizeStage,
   verifyStage,
   showStage,
@@ -21,6 +24,7 @@ import Data.Word
 import Data.List
 
 import Control.Monad.Error
+import Control.Monad.Reader
 
 import LLVM.General.Target
 import LLVM.General.Context
@@ -33,9 +37,16 @@ import LLVM.General.Transforms
 import LLVM.General.PassManager
 
 type Ctx = (Context, Module, Settings)
-type Check = Ctx -> IO Bool
+
+-- Perform some action with the result.
 type Stage = Ctx -> IO (Either String Ctx)
 type Pipeline = [Stage]
+
+newtype Exec a = Exec { unExec :: ReaderT Ctx IO a }
+  deriving (Monad, MonadReader Ctx, MonadIO)
+
+runExec :: Exec a -> Ctx -> IO a
+runExec m ctx = runReaderT (unExec m) ctx
 
 -- Pipeline settings
 data Settings = Settings
@@ -43,7 +54,7 @@ data Settings = Settings
     } deriving (Eq, Show)
 
 defaultSettings :: Settings
-defaultSettings = Settings { verbose = False}
+defaultSettings = Settings { verbose = False }
 
 -- Compose stages into a composite Stage.
 compose :: Stage -> Stage -> Stage
@@ -76,6 +87,7 @@ verifyStage (ctx, m, settings) = do
       Left err -> throwError (strMsg $ "No verify: " ++ err)
       Right x -> return $ Right (ctx, m, settings)
 
+-- | Conditional stage.
 condStage :: (Ctx -> IO Bool) -> Stage
 condStage test opts = do
   tval <- test opts
@@ -83,6 +95,11 @@ condStage test opts = do
     return $ Right opts
   else
     throwError (strMsg "Failed condition.")
+
+execStage :: Exec a -> Stage
+execStage exec ctx = do
+  runExec exec ctx
+  return $ Right ctx
 
 -- | Dump the generated IR to stdout.
 showStage :: Stage
@@ -116,7 +133,7 @@ optimizeStage level (ctx, m, settings) = do
     runPassManager pm m
   return $ Right (ctx, m, settings)
 
--- | Run a AST through the compiler pipeline executing arbitrary effects specified by the pipeline, and
+-- | Run a AST through the pipeline executing arbitrary effects specified by the pipeline, and
 -- finally either returning the resulting AST or the CompilerError.
 runPipeline :: Pipeline -> Settings -> AST.Module -> IO (Either String AST.Module)
 runPipeline pline settings ast = do
@@ -130,12 +147,12 @@ runPipeline pline settings ast = do
         Left err -> throwError (strMsg err)
         Right x -> moduleAST m
 
+-- | Run a AST through the pipeline executing arbitrary effects specified by the pipeline, and
+-- finally either returning the resulting IR as a String.
 runPipeline_ :: Pipeline -> Settings -> AST.Module -> IO (Either String String)
 runPipeline_ pline settings ast = do
   withContext $ \ctx ->
     runErrorT $ withModuleFromAST ctx ast $ \m -> do
-      -- fold the the list of Stages into a single function,
-      -- sequentially from left to right
       let res = foldl1' compose pline
       final <- res (ctx, m, settings)
       case final of

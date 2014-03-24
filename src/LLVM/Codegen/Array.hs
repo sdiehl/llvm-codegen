@@ -70,7 +70,18 @@ asArray arr ty shape =
 -- offset(D, I) = \sum_{k=1}^d \left( \prod_{l=k+1}^d D_l \right) I_k
 -- @
 
--- Offset instructions
+-- | Generate the instructions to calculate the linear offset from the shape of the array.
+-- @
+--
+-- S = (8, 8)
+-- P = [p0, p1]
+--
+--  %0 = mul i32 p0, 1
+--  %1 = add i32 0, %0
+--  %2 = mul i32 p1, 8
+--  %3 = add i32 %1, %2
+-- @
+
 offset :: Operand -> (Operand, Operand) -> Codegen Operand
 offset p (x,y) = mul x y >>= add p
 

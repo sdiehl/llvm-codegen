@@ -8,6 +8,7 @@ import Test.Tasty.Golden
 
 import Utils
 
+import Data.Int
 import Foreign.LibFFI
 import Foreign.C.Types
 
@@ -24,6 +25,8 @@ import LLVM.Codegen.Execution
 
 import LLVM.General.AST (Operand, Type)
 
+import Control.Monad.Reader
+
 -------------------------------------------------------------------------------
 -- Modules
 -------------------------------------------------------------------------------
@@ -36,7 +39,7 @@ import LLVM.General.AST (Operand, Type)
 -- y : Vector t
 axpy :: Type -> LLVM ()
 axpy ty =
-  def "saxpy" i32
+  def "axpy" i32
     [ (i32, "n")           -- element count
     , (ty, "a")            -- scalar
     , (pointer ty, "x")    -- vector x
@@ -68,17 +71,18 @@ daxpy = axpy f64
 diag :: LLVM ()
 diag = do
   def "diag" i32
-    [ (pointer f64, "x") ] $ do
+    [ (pointer i64, "x") ] $ do
 
     let n = constant i32 8
-    xarr <- arrayArg "x" f64 [constant i32 8, constant i32 8]
+    xarr <- arrayArg "x" i64 [n, n]
+
+    let val = constant i64 1
 
     let inc = add one
-    let i = avar i32 zero
 
+    -- iteration var
+    let i = avar i32 zero
     for i inc (`ilt` n) $ \ix -> do
-      ixf <- uitofp f64 ix
-      let val = constant f64 1
       arraySet xarr [ix, ix] val
 
     return zero
@@ -87,50 +91,62 @@ diag = do
 -- Tests
 -------------------------------------------------------------------------------
 
-diagTest :: Check
-diagTest (ctx, m, _) = do
-  x <- VM.replicate (8*8) (0 :: CDouble)
-  xptr <- vectorArg x
+call_ :: String -> [Arg] -> Exec ()
+call_ fn args = do
+  (ctx, llmod, _) <- ask
+  liftIO $ callAs ctx llmod fn retVoid args
+  return ()
 
-  callAs ctx m "diag" retVoid [xptr]
-  frozen <- V.freeze x
+diagVec :: Int -> [Int64]
+diagVec n = [if i == j then 1 else 0 | i <- [1..n], j <- [1..n]]
+
+diagTest :: Exec Bool
+diagTest = do
+  x <- liftIO $ VM.replicate (8*8) (0 :: Int64)
+  xptr <- liftIO $ vectorArg x
+
+  call_ "diag" [xptr]
+
+  frozen <- liftIO $ V.freeze x
+
   let output = V.toList frozen
-  return $ output == (diag 8)
+  return $ output == (diagVec 8)
 
-  where
-    diag n = [if i == j then 1 else 0 | i <- [1..n], j <- [1..n]]
+daxpyTest :: Exec Bool
+daxpyTest = do
+  x <- liftIO $ VM.replicate 64 (10 :: Double)
+  y <- liftIO $ VM.replicate 64 (20 :: Double)
+  o <- liftIO $ VM.replicate 64 (0 :: Double)
 
-daxpyTest :: Check
-daxpyTest (ctx, m, _) = do
-  x <- VM.replicate 64 (10 :: CDouble)
-  y <- VM.replicate 64 (20 :: CDouble)
-  o <- VM.replicate 64 (0 :: CDouble)
-
-  xptr <- vectorArg x
-  yptr <- vectorArg y
-  optr <- vectorArg o
+  xptr <- liftIO $ vectorArg x
+  yptr <- liftIO $ vectorArg y
+  optr <- liftIO $ vectorArg o
 
   let args = [argCInt 64, argCDouble 3, xptr, yptr, optr]
-  callAs ctx m "saxpy" retVoid args
   let expected = replicate 64 50
-  frozen <- V.freeze o
+
+  call_ "axpy" args
+
+  frozen <- liftIO $ V.freeze o
   let output = V.toList frozen
   return $ output == expected
 
-saxpyTest :: Check
-saxpyTest (ctx, m, _) = do
-  x <- VM.replicate 64 (10 :: CFloat)
-  y <- VM.replicate 64 (20 :: CFloat)
-  o <- VM.replicate 64 (0 :: CFloat)
+saxpyTest :: Exec Bool
+saxpyTest = do
+  x <- liftIO $ VM.replicate 64 (10 :: Float)
+  y <- liftIO $ VM.replicate 64 (20 :: Float)
+  o <- liftIO $ VM.replicate 64 (0 :: Float)
 
-  xptr <- vectorArg x
-  yptr <- vectorArg y
-  optr <- vectorArg o
+  xptr <- liftIO $ vectorArg x
+  yptr <- liftIO $ vectorArg y
+  optr <- liftIO $ vectorArg o
 
   let args = [argCInt 64, argCFloat 3, xptr, yptr, optr]
-  callAs ctx m "saxpy" retVoid args
   let expected = replicate 64 50
-  frozen <- V.freeze o
+
+  call_ "axpy" args
+  frozen <- liftIO $ V.freeze o
+
   let output = V.toList frozen
   return $ output == expected
 
@@ -139,11 +155,12 @@ main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [unitTests]
+tests = testGroup "Tests" [
 
-unitTests = testGroup "Pipeline tests"
-  [
-    testCase "test_daxpy" $ compileTest saxpyTest saxpy
-  , testCase "test_daxpy" $ compileTest daxpyTest daxpy
-  , testCase "test_diag" $ compileTest diagTest diag
+    testGroup "Pipeline tests" [
+      testCase "test_saxpy" $ execTest "saxpy.ll" saxpyTest saxpy
+    , testCase "test_daxpy" $ execTest "daxpy.ll" daxpyTest daxpy
+    , testCase "test_diag"  $ execTest "diag.ll" diagTest diag
+    ]
+
   ]
