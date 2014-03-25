@@ -30,12 +30,12 @@ import Control.Monad.Reader
 -- Modules
 -------------------------------------------------------------------------------
 
--- saxpy [t] α x y out =
---  out <- α * x + y
---
--- α : Scalar t
--- x : Vector t
--- y : Vector t
+-- void saxpy(int n, float a, float *x, float *y)
+-- {
+--   for (int i = 0; i < n; ++i)
+--       y[i] = a*x[i] + y[i];
+-- }
+
 axpy :: Type -> LLVM ()
 axpy ty =
   def "axpy" i32

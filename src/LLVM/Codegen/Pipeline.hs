@@ -54,16 +54,17 @@ defaultSettings = Settings { verbose = False }
 compose :: Stage -> Stage -> Stage
 compose a b x = a x >>= either (return . Left) b
 
--- Run the stage only if verobse is toggled True.
+-- Run the stage only if verbose is toggled True.
 ifVerbose :: Stage -> Stage
 ifVerbose pass opts@(ctx, m, settings) =
-  if verbose  settings then
+  if verbose settings then
     pass opts
   else
     noopStage opts
 
 trace :: Settings -> String -> IO ()
-trace settings msg = if verbose settings
+trace settings msg =
+  if verbose settings
   then putStrLn msg
   else return ()
 
