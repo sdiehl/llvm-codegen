@@ -1,9 +1,9 @@
 llvm-codegen
 ============
 
-llvm-codegen is the first of several layers of abstraction on top of the LLVM bindings. The goal is to layer
-several intermediate layers of abstractions each targeting each other and providing provable semantic
-guarantees for higher level domain languages.
+*llvm-codegen* is an abstraction layer on top of of llvm-general bindings. The goal is to provide a higher
+level way to emit LLVM IR from Haskell for the purpose of writing numeric domain languages that compile to
+native code for use against a C ABI or can be executed within the Haskell runtime via the LLVM JIT.
 
 License
 -------
