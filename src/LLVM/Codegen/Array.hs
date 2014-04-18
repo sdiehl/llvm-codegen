@@ -24,8 +24,10 @@ import LLVM.Codegen.Constant
 import LLVM.Codegen.Instructions
 import LLVM.General.AST (Type, Operand)
 
-data Order = RowMajor
-           | ColMajor deriving (Eq, Ord, Show)
+data Order
+  = RowMajor
+  | ColMajor
+  deriving (Eq, Ord, Show)
 
 -- | Array representation. The equivelant C type would be:
 --
@@ -37,8 +39,8 @@ data Order = RowMajor
 -- } Array;
 -- @
 arrayType :: Type
-arrayType = struct [
-    pointer char   -- char *data
+arrayType = struct
+  [ pointer char   -- char *data
   , pointer intp   -- intp *shape
   , pointer intp   -- intp *strides
   ]

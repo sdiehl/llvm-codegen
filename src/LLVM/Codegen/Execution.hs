@@ -1,9 +1,14 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module LLVM.Codegen.Execution (
   withJit,
   vectorArg,
   callAs,
   jitCall,
-  jitCall_
+  jitCall_,
+  Lower(..)
 ) where
 
 import Control.Monad.Error
@@ -45,6 +50,7 @@ withJit c = EE.withMCJIT c optlevel model ptrelim fastins
 vectorArg :: Storable a => VM.MVector t a -> IO Arg
 vectorArg v = return $ argPtr ptr
   where
+    -- XXX: any way to use unsafeWithForeignPtr
     ptr = unsafeForeignPtrToPtr . fst $ VM.unsafeToForeignPtr0 v
 
 -- | Call a JIT'd function as the specified type signature.
@@ -58,11 +64,39 @@ callAs ctx m fname retty args =
         Just fn -> callFFI fn retty args >>= return
 
 -- | Call a JIT'd function within a ``Exec`` context.
-jitCall fn retty argtys = do
+jitCall fn retty args = do
   (ctx, llmod, _) <- ask
-  liftIO $ callAs ctx llmod fn retty argtys
+  liftIO $ callAs ctx llmod fn retty args
 
 -- | Call a JIT'd function within a ``Exec`` context with no return value.
 jitCall_ fn argtys = do
   (ctx, llmod, _) <- ask
   liftIO $ callAs ctx llmod fn retVoid argtys
+
+-------------------------------------------------------------------------------
+-- Type Conversion
+-------------------------------------------------------------------------------
+
+class Lower a where
+  lower :: a -> IO Arg
+
+instance Lower Int where
+  lower = return . argCInt . fromIntegral
+
+instance Lower Float where
+  lower = return . argCFloat . realToFrac
+
+instance Lower CInt where
+  lower = return . argCInt
+
+instance Lower CFloat where
+  lower = return . argCFloat
+
+instance Lower Double where
+  lower = return . argCDouble . realToFrac
+
+instance Storable a => Lower (VM.MVector t a) where
+  lower = vectorArg
+
+instance Storable a => Lower (V.Vector a) where
+  lower v = V.thaw v >>= vectorArg
