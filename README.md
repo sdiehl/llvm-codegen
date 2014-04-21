@@ -1,14 +1,39 @@
 llvm-codegen
 ============
 
-*llvm-codegen* is an abstraction layer on top of of llvm-general bindings. The goal is to provide a higher
-level way to emit LLVM IR from Haskell for the purpose of writing numeric domain languages that compile to
-native code for use against a C ABI or can be executed within the Haskell runtime via the LLVM JIT.
+*llvm-codegen* is an abstraction layer on top of of llvm-general bindings, or a compiler construction
+framework. The goal is to provide a higher level way to emit LLVM IR from Haskell for the purpose of writing
+numeric domain languages that compile to native code for use against a C ABI or can be executed within the
+Haskell runtime via the LLVM JIT.
+
+Code is still tentative, but contributions and bug reports are always welcome.
+
+Install
+=======
+
+```haskell
+$ cabal configure
+$ cabal install --only-dependencies
+$ cabal build
+```
+
+For the test suite:
+
+```haskell
+$ cabal configure --enable-tests
+$ cabal test
+```
+
+For the documentation:
+
+```haskell
+$ cabal haddock
+```
 
 Usage
------
+=====
 
-The exposes a higher level buidler interface to constructing LLVM IR in an embedded DSL as well as a variety
+The exposes a higher level builder interface to constructing LLVM IR in an embedded DSL as well as a variety
 of helper functions for mapping high-level constructs to LLVM IR and managing JIT execution.
 
 ```haskell
@@ -58,6 +83,39 @@ entry:
 
 attributes #0 = { nounwind readnone }
 ```
+
+Pipeline
+========
+
+TODO
+
+Low Level Features
+==================
+
+TODO
+
+Execution
+----------
+
+TODO
+
+High Level Features
+===================
+
+Loops
+-----
+
+TODO
+
+Tuple
+-----
+
+TODO
+
+Arrays and Matrices
+-------------------
+
+TODO
 
 License
 -------
