@@ -118,6 +118,24 @@ executable vectorlang
   else
     buildable: False
 
+executable simple
+  main-is:             Simple.hs
+  default-language:    Haskell2010
+  build-depends:
+      base              >= 4.6 && <4.7
+    , containers        >= 0.5 && <0.6
+    , vector            >= 0.10
+    , llvm-general      >= 3.3.8.2
+    , llvm-general-pure >= 3.3.8.2
+    , llvm-codegen      == 0.1.0.0
+    , libffi            == 0.1
+    , haskeline         >= 0.7
+    , parsec            >= 3.1 && <3.2
+    , pretty-show       == 1.4.1
+    , transformers      >= 0.3
+    , array             >= 0.4
+    , mtl
+
 executable dsl
   main-is:             dsl.hs
   default-language:    Haskell2010

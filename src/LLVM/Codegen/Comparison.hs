@@ -42,8 +42,6 @@ import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
 -}
 
--- XXX: add signed later, maybe
-
 ult :: Operand -> Operand -> Codegen Operand
 ult a b = icmp IP.ULT a b
 

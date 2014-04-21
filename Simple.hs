@@ -2,18 +2,11 @@
 
 module Main where
 
-import Control.Monad
-import Control.Monad.IO.Class
-
 import LLVM.Codegen
-import LLVM.Codegen.Types
-import LLVM.Codegen.Instructions
 import LLVM.Codegen.Build
-import LLVM.Codegen.Execution
-import LLVM.Codegen.Pipeline
 
 import Foreign.LibFFI
-import Foreign.C.Types
+import Control.Monad.Trans
 
 simple1 :: LLVM ()
 simple1 =
@@ -45,5 +38,5 @@ main :: IO ()
 main = do
   execSimple run simple1
   execSimple run simple2
-  logOptSimple "simple.opt.ll" 2 simple2
+  logOptSimple "simple.opt.ll" 2 simple1
   return ()
