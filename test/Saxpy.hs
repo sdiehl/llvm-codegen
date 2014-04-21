@@ -56,7 +56,7 @@ axpy ty =
     let inc = add one
     let i = avar i32 zero
 
-    for i inc (`ilt` n) $ \ix -> do
+    for i inc (`ult` n) $ \ix -> do
       xi <- arrayGet xarr [ix]
       yi <- arrayGet yarr [ix]
       ax <- fmul a xi
@@ -82,7 +82,7 @@ diag = do
 
     -- iteration var
     let i = avar i32 zero
-    for i inc (`ilt` n) $ \ix -> do
+    for i inc (`ult` n) $ \ix -> do
       arraySet xarr [ix, ix] val
 
     return zero

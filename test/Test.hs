@@ -12,15 +12,11 @@ import Test.Tasty.Golden.Manage
 import Test.Tasty hiding (defaultMain)
 
 import LLVM.Codegen
-import LLVM.Codegen.Types
-import LLVM.Codegen.Instructions
-import LLVM.Codegen.Pipeline
-import LLVM.Codegen.Structure
-import LLVM.Codegen.Array
-import LLVM.Codegen.Execution
-import LLVM.Codegen.Build
 import qualified LLVM.Codegen.Intrinsics as I
 
+import LLVM.Codegen
+import LLVM.Codegen.Build
+import LLVM.Codegen.Builder
 import LLVM.General.AST (Operand)
 
 -------------------------------------------------------------------------------
@@ -72,7 +68,7 @@ testComparison =
   def "main" i1 [(i32, "x")] $ do
     x <- getvar "x"
     xv <- load x
-    xv `ilt` one
+    xv `ult` one
 
 testIntrinsic :: LLVM ()
 testIntrinsic = do
@@ -103,7 +99,7 @@ testFull =
 
   where
     inc = add one
-    cond x = x `ilt` constant i32 15
+    cond x = x `ult` constant i32 15
 
 testLoopnest :: LLVM ()
 testLoopnest = do

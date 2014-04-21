@@ -1,10 +1,17 @@
 module LLVM.Codegen.Comparison (
-  ilt,
-  igt,
-  ieq,
-  ine,
-  ile,
-  ige,
+  ult,
+  ugt,
+  ueq,
+  une,
+  ule,
+  uge,
+
+  slt,
+  sgt,
+  seq,
+  sne,
+  sle,
+  sge,
 
   flt,
   fgt,
@@ -13,6 +20,8 @@ module LLVM.Codegen.Comparison (
   fle,
   fge
 ) where
+
+import Prelude hiding (seq)
 
 import LLVM.Codegen.Builder
 import LLVM.Codegen.Instructions
@@ -35,24 +44,43 @@ import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
 -- XXX: add signed later, maybe
 
-ilt :: Operand -> Operand -> Codegen Operand
-ilt a b = icmp IP.ULT a b
+ult :: Operand -> Operand -> Codegen Operand
+ult a b = icmp IP.ULT a b
 
-igt :: Operand -> Operand -> Codegen Operand
-igt a b = icmp IP.UGT a b
+ugt :: Operand -> Operand -> Codegen Operand
+ugt a b = icmp IP.UGT a b
 
-ieq :: Operand -> Operand -> Codegen Operand
-ieq a b = icmp IP.EQ a b
+ueq :: Operand -> Operand -> Codegen Operand
+ueq a b = icmp IP.EQ a b
 
-ine :: Operand -> Operand -> Codegen Operand
-ine a b = icmp IP.NE a b
+une :: Operand -> Operand -> Codegen Operand
+une a b = icmp IP.NE a b
 
-ile :: Operand -> Operand -> Codegen Operand
-ile a b = icmp IP.ULE a b
+ule :: Operand -> Operand -> Codegen Operand
+ule a b = icmp IP.ULE a b
 
-ige :: Operand -> Operand -> Codegen Operand
-ige a b = icmp IP.UGE a b
+uge :: Operand -> Operand -> Codegen Operand
+uge a b = icmp IP.UGE a b
 
+
+
+slt :: Operand -> Operand -> Codegen Operand
+slt a b = icmp IP.SLT a b
+
+sgt :: Operand -> Operand -> Codegen Operand
+sgt a b = icmp IP.SGT a b
+
+seq :: Operand -> Operand -> Codegen Operand
+seq a b = icmp IP.EQ a b
+
+sne :: Operand -> Operand -> Codegen Operand
+sne a b = icmp IP.NE a b
+
+sle :: Operand -> Operand -> Codegen Operand
+sle a b = icmp IP.SLE a b
+
+sge :: Operand -> Operand -> Codegen Operand
+sge a b = icmp IP.SGE a b
 
 
 flt :: Operand -> Operand -> Codegen Operand
