@@ -17,7 +17,6 @@ import qualified LLVM.Codegen.Intrinsics as I
 import LLVM.Codegen
 import LLVM.Codegen.Build
 import LLVM.Codegen.Builder
-import LLVM.General.AST (Operand)
 
 -------------------------------------------------------------------------------
 -- Cases

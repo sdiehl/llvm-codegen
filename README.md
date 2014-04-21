@@ -11,7 +11,7 @@ Code is still tentative, but contributions and bug reports are always welcome.
 Install
 =======
 
-```haskell
+```bash
 $ cabal configure
 $ cabal install --only-dependencies
 $ cabal build
@@ -19,14 +19,14 @@ $ cabal build
 
 For the test suite:
 
-```haskell
+```bash
 $ cabal configure --enable-tests
 $ cabal test
 ```
 
 For the documentation:
 
-```haskell
+```bash
 $ cabal haddock
 ```
 

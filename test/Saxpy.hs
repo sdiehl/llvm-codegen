@@ -14,15 +14,8 @@ import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
 
 import LLVM.Codegen
-import LLVM.Codegen.Types
-import LLVM.Codegen.Instructions
-import LLVM.Codegen.Pipeline
-import LLVM.Codegen.Structure
-import LLVM.Codegen.Array
-import LLVM.Codegen.Execution
 import LLVM.Codegen.Build
-
-import LLVM.General.AST (Operand, Type)
+import LLVM.Codegen.Builder
 
 import Control.Monad.Reader
 
