@@ -22,10 +22,11 @@ inl x = inlPtr x >>= load
 inr x = inrPtr x >>= load
 
 inlPtr, inrPtr :: Operand -> Codegen Operand
-inlPtr x = gep x [foo 0, foo 0]
-inrPtr x = gep x [foo 0, foo 1]
+inlPtr x = gep x [ci 0, ci 0]
+inrPtr x = gep x [ci 0, ci 1]
 
-foo = cons . ci32 . fromIntegral
+ci :: Integral a => a -> Operand
+ci = cons . ci32 . fromIntegral
 
 tupleType :: Type -> Type -> Type
 tupleType a b = struct [ a , b ]

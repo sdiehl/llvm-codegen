@@ -21,6 +21,7 @@ module LLVM.Codegen.Builder (
   fn,
 
   freshName,
+  freshName',
   getvar,
   setvar,
 
@@ -121,6 +122,9 @@ fresh = do
 
 freshName :: Codegen Name
 freshName = UnName <$> fresh
+
+freshName' :: Codegen Int
+freshName' = fromIntegral <$> fresh
 
 -- | Return the current basic block
 current :: Codegen BlockState

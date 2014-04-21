@@ -17,6 +17,9 @@ module LLVM.Codegen.Logic (
   projass,
   seqn,
 
+  imin,
+  imax,
+
   debug,
   debugInt,
   debugFloat,
@@ -112,8 +115,8 @@ constant ty val
   | otherwise = error "Constant not supported"
 
 -- | Construction a if/then/else statement
-ife :: Operand -> Codegen Operand -> Codegen Operand -> Codegen Operand
-ife cond tr fl = do
+ife :: Type -> Operand -> Codegen Operand -> Codegen Operand -> Codegen Operand
+ife ty cond tr fl = do
   ifthen <- addBlock "if.then"
   ifelse <- addBlock "if.else"
   ifexit <- addBlock "if.exit"
@@ -131,7 +134,7 @@ ife cond tr fl = do
   ifelse' <- getBlock
 
   setBlock ifexit
-  phi double [(trval, ifthen'), (flval, ifelse')]
+  phi ty [(trval, ifthen'), (flval, ifelse')]
 
 -- | Construction a for statement
 for :: Codegen Operand               -- ^ Iteration variable
@@ -271,6 +274,18 @@ projass rty rec vals = do
 -- | Construction of a sequence statement
 seqn :: Codegen a -> Codegen b -> Codegen b
 seqn = (>>)
+
+-------------------------------------------------------------------------------
+-- Comparison
+-------------------------------------------------------------------------------
+
+imin a b = do
+  test <- icmp IP.ULT a b
+  ife i32 test (return a) (return b)
+
+imax a b = do
+  test <- icmp IP.ULT a b
+  ife i32 test (return a) (return b)
 
 -------------------------------------------------------------------------------
 -- Debug

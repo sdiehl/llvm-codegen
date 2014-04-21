@@ -18,7 +18,8 @@ import LLVM.Codegen.Execution
 printSimple :: LLVM a -> IO ()
 printSimple mod = do
   let ast = runLLVM (emptyModule "simple module") mod
-  out <- runPipeline_ [verifyStage] defaultSettings ast
+  out <- runPipeline_ [noopStage] defaultSettings ast
+  {-out <- runPipeline_ [verifyStage, optimizeStage 3] defaultSettings ast-}
   putStrLn out
 
 

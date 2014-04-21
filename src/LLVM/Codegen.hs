@@ -14,6 +14,7 @@ module LLVM.Codegen (
   module LLVM.Codegen.Tuple,
 
   AST.Operand,
+  AST.Type,
   LLVM,
   runLLVM,
   emptyModule,
