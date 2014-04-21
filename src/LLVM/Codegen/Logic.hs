@@ -17,10 +17,6 @@ module LLVM.Codegen.Logic (
   projass,
   seqn,
 
-  mkPair,
-  inl,
-  inr,
-
   debug,
   debugInt,
   debugFloat,
@@ -271,23 +267,6 @@ projass rty rec vals = do
     ass fld val = do
       ptr <- proj rty rec fld
       store ptr val
-
-inl, inr :: Operand -> Codegen Operand
-inl x = gep x [constant i32 0, constant i32 1] >>= load
-inr x = gep x [constant i32 0, constant i32 1] >>= load
-
-tupleType :: Type -> Type -> Type
-tupleType a b = struct [ a , b ]
-
-mkPair :: Type -> Type -> Operand -> Operand -> Codegen Operand
-mkPair aty bty a b = do
-  pair <- alloca $ tupleType aty bty
-  ptrl <- gep pair [constant i32 0, constant i32 0]
-  ptrr <- gep pair [constant i32 0, constant i32 1]
-  store ptrl a
-  store ptrr b
-  return pair
-  where
 
 -- | Construction of a sequence statement
 seqn :: Codegen a -> Codegen b -> Codegen b
