@@ -32,6 +32,7 @@ library
     LLVM.Codegen.Pipeline
     LLVM.Codegen.Structure
     LLVM.Codegen.Array
+    LLVM.Codegen.Tuple
     LLVM.Codegen.Complex
     LLVM.Codegen.GC
     LLVM.Codegen.Boxed
@@ -117,8 +118,8 @@ executable vectorlang
   else
     buildable: False
 
-executable simple
-  main-is:             Simple.hs
+executable dsl
+  main-is:             dsl.hs
   default-language:    Haskell2010
   build-depends:
       base              >= 4.6 && <4.7
@@ -132,4 +133,5 @@ executable simple
     , parsec            >= 3.1 && <3.2
     , pretty-show       == 1.4.1
     , transformers      >= 0.3
+    , array             >= 0.4
     , mtl

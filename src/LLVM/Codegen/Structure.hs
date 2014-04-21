@@ -4,6 +4,7 @@ module LLVM.Codegen.Structure (
 
   record,
   idxOf,
+  fieldsOf,
   allocaRecord,
 ) where
 
@@ -26,6 +27,9 @@ data Record = Record
 -- | Lookup the element pointer associated with the field name, for use with GetElementPtr.
 idxOf :: Name -> Record -> Maybe Int
 idxOf field rec = lookup field (recFields rec)
+
+fieldsOf :: Record -> [Name]
+fieldsOf = map fst . recFields
 
 -- | Construct a record ( underlying is a LLVM struct ) and return the field value.
 record :: String -> Fields -> LLVM Record

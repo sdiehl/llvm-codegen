@@ -14,8 +14,12 @@ module LLVM.Codegen.Logic (
   range,
   loopnest,
   proj,
-  caseof,
+  projass,
   seqn,
+
+  mkPair,
+  inl,
+  inr,
 
   debug,
   debugInt,
@@ -28,7 +32,7 @@ module LLVM.Codegen.Logic (
   zero
 ) where
 
-import Control.Monad (forM )
+import Control.Monad (forM, zipWithM_ )
 
 import LLVM.Codegen.Builder
 import LLVM.Codegen.Module
@@ -258,8 +262,32 @@ proj rty rec field =
     Nothing -> error $ "No such field name: " ++ show field
     Just ix -> gep rec [constant i32 0, constant i32 ix]
 
--- | Construction a case statement
-caseof val brs = undefined
+-- | Construction a record assignment statement
+projass :: Record -> Operand -> [Operand] -> Codegen ()
+projass rty rec vals = do
+  zipWithM_ ass (fieldsOf rty) (vals)
+  return ()
+  where
+    ass fld val = do
+      ptr <- proj rty rec fld
+      store ptr val
+
+inl, inr :: Operand -> Codegen Operand
+inl x = gep x [constant i32 0, constant i32 1] >>= load
+inr x = gep x [constant i32 0, constant i32 1] >>= load
+
+tupleType :: Type -> Type -> Type
+tupleType a b = struct [ a , b ]
+
+mkPair :: Type -> Type -> Operand -> Operand -> Codegen Operand
+mkPair aty bty a b = do
+  pair <- alloca $ tupleType aty bty
+  ptrl <- gep pair [constant i32 0, constant i32 0]
+  ptrr <- gep pair [constant i32 0, constant i32 1]
+  store ptrl a
+  store ptrr b
+  return pair
+  where
 
 -- | Construction of a sequence statement
 seqn :: Codegen a -> Codegen b -> Codegen b

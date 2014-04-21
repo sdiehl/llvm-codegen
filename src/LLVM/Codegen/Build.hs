@@ -1,4 +1,5 @@
 module LLVM.Codegen.Build (
+  printSimple,
   logSimple,
   logSimple_,
   logOptSimple,
@@ -13,6 +14,13 @@ import LLVM.Codegen.Execution
 -- -------------------------------------------------------------------------------
 -- The "Very High Level API"
 -------------------------------------------------------------------------------
+
+printSimple :: LLVM a -> IO ()
+printSimple mod = do
+  let ast = runLLVM (emptyModule "simple module") mod
+  out <- runPipeline_ [verifyStage] defaultSettings ast
+  putStrLn out
+
 
 -- Take a simple LLVM module, and render it's IR to a file.
 logSimple :: FilePath -> LLVM a -> IO String

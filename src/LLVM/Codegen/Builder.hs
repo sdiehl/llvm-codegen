@@ -25,6 +25,7 @@ module LLVM.Codegen.Builder (
   setvar,
 
   Codegen,
+  CodegenT,
   evalCodegen,
 ) where
 
@@ -35,6 +36,7 @@ import Data.List
 import Data.Function
 import Data.String
 
+import Control.Monad.Trans
 import Control.Monad.State
 import Control.Applicative
 
@@ -65,6 +67,11 @@ data BlockState
 
 newtype Codegen a = Codegen { runCodegen :: State CodegenState a }
   deriving (Functor, Applicative, Monad, MonadState CodegenState )
+
+newtype CodegenT m a = CodegenT { runCodegenT :: m (Codegen a) }
+
+instance MonadTrans CodegenT where
+    lift m = CodegenT (liftM return m)
 
 sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
 sortBlocks = sortBy (compare `on` (idx . snd))
