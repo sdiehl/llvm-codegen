@@ -10,11 +10,10 @@ import Control.Monad.Trans
 
 simple1 :: LLVM ()
 simple1 =
-  def "foo" i32 [(i32, "x")] $
+  def "foo" i32 [(i32, "x")] $ do
+    let a = constant i32 100
+    let b = constant i32 201
     add a b
-  where
-     a = constant i32 100
-     b = constant i32 201
 
 simple2 :: LLVM ()
 simple2 = do
@@ -32,7 +31,6 @@ run :: Exec ()
 run = do
   ret <- jitCall "foo" retCInt [argCInt 125]
   liftIO $ print ret
-  return ()
 
 main :: IO ()
 main = do
