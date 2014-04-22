@@ -9,7 +9,7 @@ Haskell runtime via the LLVM JIT.
 Code is still tentative, but contributions and bug reports are always welcome.
 
 Install
-=======
+-------
 
 ```bash
 $ cabal configure
@@ -31,7 +31,7 @@ $ cabal haddock
 ```
 
 Usage
-=====
+-----
 
 The exposes a higher level builder interface to constructing LLVM IR in an embedded DSL as well as a variety
 of helper functions for mapping high-level constructs to LLVM IR and managing JIT execution.
@@ -84,13 +84,11 @@ entry:
 attributes #0 = { nounwind readnone }
 ```
 
-Pipeline
-========
-
-TODO
-
 Low Level Features
 ==================
+
+Pipeline
+--------
 
 TODO
 

@@ -54,6 +54,15 @@ testFor = do
     j = var i32 zero "j"
     inc = add one
 
+testWhile :: LLVM ()
+testWhile = do
+  foo <- external i32 "foo" []
+
+  def "whileloop" i32 [] $ do
+    while true $ do
+      call (fn foo) []
+    return zero
+
 testRecord :: LLVM ()
 testRecord = do
   rec <- record "myrecord" [("kirk", i32), ("spock", f32)]
@@ -117,6 +126,7 @@ gfunctions = [
     (testSimple     , "simple"),
     (testMultiple   , "multiple"),
     (testFor        , "for"),
+    (testWhile      , "while"),
     (testRecord     , "record"),
     (testComparison , "comparison"),
     (testIntrinsic  , "intrinsic"),
