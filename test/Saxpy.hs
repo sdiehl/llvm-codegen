@@ -119,13 +119,13 @@ daxpyTest = do
 
 saxpyTest :: Exec Bool
 saxpyTest = do
-  x <- liftIO $ VM.replicate 64 (10 :: Float)
-  y <- liftIO $ VM.replicate 64 (20 :: Float)
+  let x = V.replicate 64 (10 :: Float)
+  let y = V.replicate 64 (20 :: Float)
   o <- liftIO $ VM.replicate 64 (0 :: Float)
 
-  xptr <- liftIO $ vectorArg x
-  yptr <- liftIO $ vectorArg y
-  optr <- liftIO $ vectorArg o
+  xptr <- liftIO $ lower x
+  yptr <- liftIO $ lower y
+  optr <- liftIO $ lower o
 
   let args = [argCInt 64, argCFloat 3, xptr, yptr, optr]
   let expected = replicate 64 50
