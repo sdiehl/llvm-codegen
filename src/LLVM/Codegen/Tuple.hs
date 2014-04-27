@@ -18,8 +18,8 @@ import qualified LLVM.General.AST.Global as G
 import LLVM.General.AST (Name(..), Type, Operand, Definition(..))
 
 inl, inr :: Operand -> Codegen Operand
-inl x = inlPtr x >>= load
-inr x = inrPtr x >>= load
+inl x = load =<< inlPtr x
+inr x = load =<< inrPtr x
 
 inlPtr, inrPtr :: Operand -> Codegen Operand
 inlPtr x = gep x [ci 0, ci 0]

@@ -24,6 +24,7 @@ module LLVM.Codegen.Builder (
   freshName',
   getvar,
   setvar,
+  defined,
 
   Codegen,
   CodegenT,
@@ -123,8 +124,13 @@ fresh = do
 freshName :: Codegen Name
 freshName = UnName <$> fresh
 
-freshName' :: Codegen Int
-freshName' = fromIntegral <$> fresh
+freshName' :: Codegen String
+freshName' = do
+  i <- fresh
+  return $ (names !! (fromIntegral i))
+  where
+    names :: [String]
+    names = [1..] >>= flip replicateM ['a'..'z']
 
 -- | Return the current basic block
 current :: Codegen BlockState
@@ -181,6 +187,13 @@ getvar var = do
   case lookup var syms of
     Just x  -> return x
     Nothing -> error $ "Local variable not in scope: " ++ show var
+
+defined :: String -> Codegen Bool
+defined var = do
+  syms <- gets symtab
+  case lookup var syms of
+    Just _  -> return $ True
+    Nothing -> return $ False
 
 -------------------------------------------------------------------------------
 -- References

@@ -17,12 +17,14 @@ module LLVM.Codegen (
 
   AST.Operand,
   AST.Type,
+  Name(..),
 
   Codegen,
 ) where
 
 -- Rexport
 import qualified LLVM.General.AST as AST
+import LLVM.General.AST.Name
 
 -- Internal
 import LLVM.Codegen.Utils

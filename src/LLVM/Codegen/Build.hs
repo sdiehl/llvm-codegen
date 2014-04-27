@@ -13,6 +13,8 @@ import LLVM.Codegen.Utils
 import LLVM.Codegen.Pipeline
 import LLVM.Codegen.Execution
 
+import LLVM.General.PrettyPrint
+
 -- -------------------------------------------------------------------------------
 -- The "Very High Level API"
 -------------------------------------------------------------------------------
@@ -24,7 +26,8 @@ defaultModuleName = "simple module"
 printSimple :: LLVM a -> IO ()
 printSimple mod = do
   let ast = runLLVM (emptyModule defaultModuleName) mod
-  out <- runPipeline_ [noopStage] defaultSettings ast
+  {-putStrLn (showPretty ast)-}
+  out <- runPipeline_ [verifyStage] defaultSettings ast
   {-out <- runPipeline_ [verifyStage, optimizeStage 3] defaultSettings ast-}
   putStrLn out
 
