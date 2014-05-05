@@ -13,8 +13,13 @@ module LLVM.Codegen.Logic (
   while,
   range,
   loopnest,
-  proj,
   seqn,
+
+  proj,
+  assign,
+  initrec,
+  (^.),
+  (.=),
 
   ucast,
   scast,
@@ -34,6 +39,8 @@ module LLVM.Codegen.Logic (
 ) where
 
 import Control.Monad (forM, zipWithM_ )
+
+import Control.Monad.Error
 
 import LLVM.Codegen.Builder
 import LLVM.Codegen.Module
@@ -74,10 +81,14 @@ one = constant i32 1
 -- | Construct a toplevel function.
 def :: String -> Type -> [(Type, String)] -> Codegen Operand -> LLVM ()
 def name retty argtys body = do
-    mapM addDefn globals
-    define retty name argtys blocks
+    -- XXX cleanup
+    case makeEntry of
+      Left err -> throwError err
+      Right (blocks, globals) -> do
+        mapM addDefn globals
+        define retty name argtys blocks
   where
-    (blocks, globals) = evalCodegen $ do
+    makeEntry = evalCodegen $ do
       entryBlock
       -- Map arguments into values in the symbol table
       forM argtys $ \(ty, a) -> do
@@ -189,8 +200,8 @@ for ivar inc cond body = do
 
 -- | Construction for range statement
 range :: String                 -- ^ Name of the iteration variable
-      -> Codegen Operand        -- ^ Lower bound
-      -> Codegen Operand        -- ^ Upper bound
+      -> Operand                -- ^ Lower bound
+      -> Operand                -- ^ Upper bound
       -> (Operand -> Codegen a) -- ^ Loop body
       -> Codegen ()
 range ivar start stop body = do
@@ -199,8 +210,8 @@ range ivar start stop body = do
   forinc  <- addBlock "for.inc"
   forexit <- addBlock "for.exit"
 
-  lower <- start
-  upper <- stop
+  let lower = start
+  let upper = stop
   i <- var i32 lower ivar
   br forcond
 
@@ -266,11 +277,14 @@ loopnest begins ends steps body = do
     makeIVar _ = avar i32 zero >>= load
     go ivars [] [] [] = (body ivars) >> return ()
     go ivars (b:bs) (e:es) (s:ss) = do
-      let start = return $ constant i32 b
-      let stop  = return $ constant i32 e
+      let start = constant i32 b
+      let stop  = constant i32 e
       range "i" start stop $ \_ ->
         go ivars bs es ss
     go _ _ _ _ = error "loop nest bounds are not equaly sized"
+
+(^.) :: Record -> RecField -> Codegen Operand
+(^.) = proj
 
 -- | Construction a record projection statement
 proj :: Record -> RecField -> Codegen Operand
@@ -278,6 +292,21 @@ proj rec field =
   case idxOf field rec of
     Nothing -> error $ "No such field name: " ++ show field
     Just ix -> gep (recValue rec) [constant i32 0, constant i32 ix]
+
+(.=) :: RecField -> Operand -> Record -> Codegen ()
+field .= val = \struct -> assign struct field val
+
+assign :: Record -> RecField -> Operand -> Codegen ()
+assign struct fld val = do
+  ptr <- proj struct fld
+  store ptr val
+
+-- | Construction a record assignment statement
+initrec :: RecordType -> [Operand] -> Codegen Record
+initrec rty vals = do
+  struct <- allocaRecord rty
+  zipWithM_ (assign struct) (fieldsOf rty) vals
+  return struct
 
 -- | Construction of a sequence statement
 seqn :: Codegen a -> Codegen b -> Codegen b

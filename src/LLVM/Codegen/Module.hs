@@ -19,6 +19,10 @@ module LLVM.Codegen.Module (
 import Control.Applicative
 import Control.Monad.State
 
+import Control.Error
+import Control.Monad.Identity
+import Control.Monad.Error.Class
+
 import LLVM.General.AST
 import LLVM.General.AST.Global as G
 import LLVM.General.AST.AddrSpace
@@ -26,12 +30,12 @@ import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST as AST
 
 -- | The LLVM builder monad.
-newtype LLVM a = LLVM { unLLVM :: State AST.Module a }
-  deriving (Functor, Applicative, Monad, MonadState AST.Module )
+newtype LLVM a = LLVM { unLLVM :: StateT AST.Module (EitherT String Identity) a }
+  deriving (Functor, Applicative, Monad, MonadState AST.Module, MonadError String)
 
 -- | Run the LLVM monad resulting in an AST.
-runLLVM :: AST.Module -> LLVM a -> AST.Module
-runLLVM = flip (execState . unLLVM)
+runLLVM :: AST.Module -> LLVM a -> Either String AST.Module
+runLLVM mod m = runIdentity (runEitherT (execStateT (unLLVM m) mod))
 
 -- | The empty module.
 emptyModule :: String -> AST.Module

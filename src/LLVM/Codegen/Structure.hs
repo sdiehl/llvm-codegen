@@ -6,6 +6,10 @@ module LLVM.Codegen.Structure (
   RecField,
   Record(..),
 
+  reclltype,
+  recvalue,
+
+  asRec,
   record,
   idxOf,
   fieldsOf,
@@ -43,9 +47,16 @@ newtype RecField = RecField { unRecField :: String }
 instance IsString RecField where
   fromString = RecField
 
+reclltype = recLLType
+recvalue = recValue
+
 -- | Lookup the element pointer associated with the field name, for use with GetElementPtr.
 idxOf :: RecField -> Record -> Maybe Int
 idxOf field rec = lookup field (recFields (recType rec))
+
+-- | Interpret an arbitrary value as a record of given type.
+asRec :: RecordType -> Operand -> Record
+asRec ty op = Record op ty
 
 fieldsOf :: RecordType -> [RecField]
 fieldsOf = map fst . recFields

@@ -1,4 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveFunctor #-}
+
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -27,7 +29,6 @@ module LLVM.Codegen.Builder (
   defined,
 
   Codegen,
-  CodegenT,
   evalCodegen,
 ) where
 
@@ -38,6 +39,9 @@ import Data.List
 import Data.Function
 import Data.String
 
+import Control.Error
+import Control.Monad.Identity
+import Control.Monad.Error.Class
 import Control.Monad.Trans
 import Control.Monad.State
 import Control.Applicative
@@ -67,13 +71,11 @@ data BlockState
   , term  :: Maybe (Named Terminator)       -- ^ Block terminator
   } deriving Show
 
-newtype Codegen a = Codegen { runCodegen :: State CodegenState a }
-  deriving (Functor, Applicative, Monad, MonadState CodegenState )
+newtype Codegen a = Codegen { runCodegen :: StateT CodegenState (EitherT String Identity) a }
+  deriving (Functor, Applicative, Monad, MonadState CodegenState, MonadError String)
 
-newtype CodegenT m a = CodegenT { runCodegenT :: m (Codegen a) }
-
-instance MonadTrans CodegenT where
-    lift m = CodegenT (liftM return m)
+codeFail :: String -> Codegen ()
+codeFail err = throwError err
 
 sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
 sortBlocks = sortBy (compare `on` (idx . snd))
@@ -85,13 +87,14 @@ createBlocks m = map makeBlock $ sortBlocks $ Map.toList (blocks m)
 createGlobals :: CodegenState -> [Definition]
 createGlobals m = globals m
 
-evalCodegen :: Codegen a -> ([BasicBlock], [Definition])
-evalCodegen m = (createBlocks cs, createGlobals cs)
-  where cs = execCodegen [] m
+evalCodegen :: Codegen a -> Either String ([BasicBlock], [Definition])
+evalCodegen m = do
+  cs <- execCodegen [] m
+  return $ (createBlocks cs, createGlobals cs)
 
 -- | Evaluate the Codegen monad returning the state accrued.
-execCodegen :: [(String, Operand)] -> Codegen a -> CodegenState
-execCodegen vars m = execState (runCodegen m) emptyCodegen { symtab = vars }
+execCodegen :: [(String, Operand)] -> Codegen a -> Either String CodegenState
+execCodegen vars m = runIdentity $ runEitherT $ (execStateT (runCodegen m) (emptyCodegen { symtab = vars }))
 
 makeBlock :: (Name, BlockState) -> BasicBlock
 makeBlock (l, (BlockState _ s t)) = BasicBlock l s (maketerm t)
@@ -139,7 +142,7 @@ current = do
   blks <- gets blocks
   case Map.lookup c blks of
     Just x -> return x
-    Nothing -> error $ "No such block: " ++ show c
+    Nothing -> throwError $ "No such block: " ++ show c
 
 -- | Append an instruction to current basic block
 instr :: Instruction -> Codegen (Operand)

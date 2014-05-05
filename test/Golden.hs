@@ -70,13 +70,36 @@ testWhile = do
       call (fn foo) []
     return zero
 
+testRange :: LLVM ()
+testRange = do
+  foo <- external i32 "foo" [(i32, "i")]
+
+  def "rangeloop" i32 [] $ do
+    let start = constant i32 0
+    let stop  = constant i32 100
+    range "i" start stop $ \i -> do
+      call (fn foo) [i]
+    return zero
+
 testRecord :: LLVM ()
 testRecord = do
   rec <- record "myrecord" [("kirk", i32), ("spock", f32)]
   def "main" i32 [] $ do
     x <- allocaRecord rec
-    xp <- proj x "kirk"
+    xp <- x `proj` "kirk"
     load xp
+
+testRecordRecord :: LLVM ()
+testRecordRecord = do
+  reca <- record "a" [("i", i32)]
+  recb <- record "b" [("j", reclltype reca)]
+
+  def "main" i32 [] $ do
+    vala <- initrec reca [constant i32 1]
+    valb <- initrec recb [recvalue vala]
+    j <- valb `proj` "j"
+    i <- (asRec reca j) `proj` "i"
+    return i
 
 testComparison :: LLVM ()
 testComparison =
@@ -147,6 +170,7 @@ gfunctions = [
     (testIf         , "if"),
     (testFor        , "for"),
     (testWhile      , "while"),
+    (testRange      , "range"),
     (testRecord     , "record"),
     (testComparison , "comparison"),
     (testIntrinsic  , "intrinsic"),
