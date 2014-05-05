@@ -95,13 +95,112 @@ Execution
 
 TODO
 
+LibFFI
+------
+
 Language Constructions
 ======================
+
+Functions
+---------
+
+```cpp
+int foo(int x) {
+  int32_t a = 1;
+  int64_t b = 1;
+  return (a+b);
+}
+```
+
+```haskell
+testSimple :: LLVM ()
+testSimple =
+  def "foo" i32 [(i32, "x")] $
+    add a b
+  where
+     a = constant i32 1
+     b = constant i64 1000
+```
+
+```llvm
+; ModuleID = 'simple module'
+
+define i32 @foo(i32 %x) {
+entry:
+  %x.addr = alloca i32
+  store i32 %x, i32* %x.addr
+  ret i32 1001
+}
+```
+
+The last statement in the Codegen monad implicitly returns the value as LLVM ``ret`` statement.
+
+Printf
+-----
+
+Encoding the strings to write down ``printf`` from libc, is normally a pain so a ``debug`` function is
+included to do this automatically.
+
+```cpp
+int main() {
+  printf("%i", 42);
+  return 0;
+}
+```
+
+```haskell
+testDebug :: LLVM ()
+testDebug =
+  def "main" i32 [] $
+    debug "%i" [x]
+  where
+    x = constant i32 42
+```
+
+```llvm
+; ModuleID = 'simple module'
+
+@"%i" = global [3 x i8] c"%i\00"
+
+declare i32 @printf(i8*, ...)
+
+define i32 @main() {
+entry:
+  %0 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([3 x i8]* @"%i", i32 0, i32 0), i32 42)
+  ret i32 %0
+}
+```
 
 Variables
 ---------
 
-TODO
+```cpp
+uint8_t main(int x) {
+  return (x < 1);
+}
+```
+
+```haskell
+  def "main" i1 [(i32, "x")] $ do
+    x <- getvar "x"
+    xv <- load x
+```
+
+```llvm
+; ModuleID = 'simple module'
+
+define i1 @main(i32 %x) {
+entry:
+  %x.addr = alloca i32
+  store i32 %x, i32* %x.addr
+  %0 = load i32* %x.addr
+  %1 = icmp ult i32 %0, 1
+  ret i1 %1
+}
+```
+
+The ``mem2reg`` optimizerz pass is always able to eliminate redudent stack allocations emitted using this
+approach to local variables.
 
 For Loops
 ---------
@@ -118,6 +217,14 @@ for ( j = 0; j < 100; ++j ) {
 ```
 
 We can use the `for` function to generate the appropriate loop blocks in our function.
+
+```haskell
+for :: Codegen Operand               -- ^ Iteration variable
+    -> (Operand -> Codegen Operand)  -- ^ Iteration action
+    -> (Operand -> Codegen Operand)  -- ^ Loop exit condition
+    -> (Operand -> Codegen a)        -- ^ Loop body
+    -> Codegen ()
+```
 
 ```haskell
 forloop :: LLVM ()
@@ -190,6 +297,43 @@ Tuples
 ------
 
 TODO
+
+Records
+-------
+
+Structures in LLVM are just packed/unpacked structures which refer to fields by numerical index. We build on
+top of this to interface to wrap the records in a structure which allows us to refer to names by human
+readable strings which map to indicies which perform the relevant GetElementPtr operations on the underlying
+struct.
+
+```cpp
+struct myrecord {
+  int kirk;
+  float spock;
+};
+```
+
+```haskell
+testRecord :: LLVM ()
+testRecord = do
+  rec <- record "myrecord" [("kirk", i32), ("spock", f32)]
+  def "main" i32 [] $ do
+    x <- allocaRecord rec
+    xp <- proj rec x "kirk"
+    load xp
+```
+
+```llvm
+; ModuleID = 'simple module'
+
+define i32 @main() {
+entry:
+  %0 = alloca { i32, float }
+  %1 = getelementptr inbounds { i32, float }* %0, i32 0, i32 0
+  %2 = load i32* %1
+  ret i32 %2
+}
+```
 
 Arrays and Matrices
 -------------------
