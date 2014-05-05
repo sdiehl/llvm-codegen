@@ -68,7 +68,7 @@ testRecord = do
   rec <- record "myrecord" [("kirk", i32), ("spock", f32)]
   def "main" i32 [] $ do
     x <- allocaRecord rec
-    xp <- proj rec x "kirk"
+    xp <- proj x "kirk"
     load xp
 
 testComparison :: LLVM ()
@@ -118,6 +118,18 @@ testLoopnest = do
       call (fn foo) ivars
     return zero
 
+testPair :: LLVM ()
+testPair = do
+  def "main" i32 [] $ do
+    tup <- mkPair i32 f32 a b
+    l <- inl tup
+    r <- inr tup
+    debug "%i" [l]
+    debug "%f" [r]
+  where
+     a = constant i32 100
+     b = constant f32 200
+
 -------------------------------------------------------------------------------
 -- Test Runner
 -------------------------------------------------------------------------------
@@ -132,7 +144,8 @@ gfunctions = [
     (testIntrinsic  , "intrinsic"),
     (testDebug      , "debug"),
     (testFull       , "full"),
-    (testLoopnest   , "loopnest")
+    (testLoopnest   , "loopnest"),
+    (testPair       , "pair")
   ]
 
 mkTest :: (LLVM a, TestName) -> TestTree

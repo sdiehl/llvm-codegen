@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE RankNTypes #-}
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 
 module LLVM.Codegen.Logic (
@@ -14,7 +14,6 @@ module LLVM.Codegen.Logic (
   range,
   loopnest,
   proj,
-  projass,
   seqn,
 
   imin,
@@ -104,6 +103,7 @@ avar ty val = do
   store ref val
   return ref
 
+{-constant :: Integral a => Type -> a -> Operand-}
 constant ty val
   | ty == i1  = cons $ ci1  $ fromIntegral val
   | ty == i8  = cons $ ci8  $ fromIntegral val
@@ -255,21 +255,11 @@ loopnest begins ends steps body = do
     go _ _ _ _ = error "loop nest bounds are not equaly sized"
 
 -- | Construction a record projection statement
-proj :: Record -> Operand -> Name -> Codegen Operand
-proj rty rec field =
-  case idxOf field rty of
+proj :: Record -> RecField -> Codegen Operand
+proj rec field =
+  case idxOf field rec of
     Nothing -> error $ "No such field name: " ++ show field
-    Just ix -> gep rec [constant i32 0, constant i32 ix]
-
--- | Construction a record assignment statement
-projass :: Record -> Operand -> [Operand] -> Codegen ()
-projass rty rec vals = do
-  zipWithM_ ass (fieldsOf rty) (vals)
-  return ()
-  where
-    ass fld val = do
-      ptr <- proj rty rec fld
-      store ptr val
+    Just ix -> gep (recValue rec) [constant i32 0, constant i32 ix]
 
 -- | Construction of a sequence statement
 seqn :: Codegen a -> Codegen b -> Codegen b
@@ -279,10 +269,14 @@ seqn = (>>)
 -- Comparison
 -------------------------------------------------------------------------------
 
+-- | min(a,b)
+imin :: Operand -> Operand -> Codegen Operand
 imin a b = do
   test <- icmp IP.ULT a b
   ife i32 test (return a) (return b)
 
+-- | max(a,b)
+imax :: Operand -> Operand -> Codegen Operand
 imax a b = do
   test <- icmp IP.ULT a b
   ife i32 test (return a) (return b)

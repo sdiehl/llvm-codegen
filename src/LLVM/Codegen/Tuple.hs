@@ -1,4 +1,5 @@
 module LLVM.Codegen.Tuple (
+  Pair,
   inl,
   inr,
   tupleType,
@@ -17,9 +18,9 @@ import qualified LLVM.General.AST.IntegerPredicate as IP
 import qualified LLVM.General.AST.Global as G
 import LLVM.General.AST (Name(..), Type, Operand, Definition(..))
 
-inl, inr :: Operand -> Codegen Operand
-inl x = load =<< inlPtr x
-inr x = load =<< inrPtr x
+inl, inr :: Pair -> Codegen Operand
+inl x = inlPtr (pairValue x) >>= load
+inr x = inrPtr (pairValue x) >>= load
 
 inlPtr, inrPtr :: Operand -> Codegen Operand
 inlPtr x = gep x [ci 0, ci 0]
@@ -31,11 +32,19 @@ ci = cons . ci32 . fromIntegral
 tupleType :: Type -> Type -> Type
 tupleType a b = struct [ a , b ]
 
-mkPair :: Type -> Type -> Operand -> Operand -> Codegen Operand
+data Pair = Pair
+  { pairValue     :: Operand
+  , pairLeftType  :: Type
+  , pairRightType :: Type
+  } deriving (Eq, Ord, Show)
+
+mkPair :: Type -> Type
+       -> Operand -> Operand
+       -> Codegen Pair
 mkPair aty bty a b = do
   pair <- alloca $ tupleType aty bty
   l <- inlPtr pair
   r <- inrPtr pair
   store l a
   store r b
-  return pair
+  return $ Pair pair aty bty

@@ -81,4 +81,4 @@ instance Constant Float where
   toConstant = cf32
 
 instance Constant Double where
-  toConstant = cf64
+  {-toConstant = cf64-}
