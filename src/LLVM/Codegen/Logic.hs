@@ -16,6 +16,9 @@ module LLVM.Codegen.Logic (
   proj,
   seqn,
 
+  ucast,
+  scast,
+
   imin,
   imax,
 
@@ -103,16 +106,31 @@ avar ty val = do
   store ref val
   return ref
 
-{-constant :: Integral a => Type -> a -> Operand-}
 constant ty val
-  | ty == i1  = cons $ ci1  $ fromIntegral val
-  | ty == i8  = cons $ ci8  $ fromIntegral val
-  | ty == i16 = cons $ ci16 $ fromIntegral val
-  | ty == i32 = cons $ ci32 $ fromIntegral val
-  | ty == i64 = cons $ ci64 $ fromIntegral val
-  | ty == f32 = cons $ cf32 $ fromIntegral val
-  | ty == f64 = cons $ cf64 $ fromIntegral val
+  | ty == i1  = cons $ ci1  $ val
+  | ty == i8  = cons $ ci8  $ val
+  | ty == i16 = cons $ ci16 $ val
+  | ty == i32 = cons $ ci32 $ val
+  | ty == i64 = cons $ ci64 $ val
+  | ty == f32 = cons $ cf32 $ realToFrac val
+  | ty == f64 = cons $ cf64 $ realToFrac val
   | otherwise = error "Constant not supported"
+
+-- Unsigned cast
+ucast :: Type -> Type -> Operand -> Codegen Operand
+ucast from to val
+  | isInt   from && isInt   to = zext   to val
+  | isFloat from && isInt   to = fptoui to val
+  | isFloat from && isInt   to = fptoui to val
+  | isFloat from && isFloat to = fpext  to val
+
+-- Signed cast
+scast :: Type -> Type -> Operand -> Codegen Operand
+scast from to val
+  | isInt   from && isInt   to = sext   to val
+  | isFloat from && isInt   to = fptosi to val
+  | isFloat from && isInt   to = fptosi to val
+  | isFloat from && isFloat to = fpext  to val
 
 -- | Construction a if/then/else statement
 ife :: Type -> Operand -> Codegen Operand -> Codegen Operand -> Codegen Operand

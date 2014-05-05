@@ -33,11 +33,18 @@ testSimple =
 testMultiple :: LLVM ()
 testMultiple = do
   def "foo" i32 [(i32, "x")] $ do
-    x <- getvar "x"
-    load x
+    arg "x"
 
   def "bar" i32 [(i32, "x")] $
     return $ cons $ ci32 1000
+
+testIf :: LLVM ()
+testIf = do
+  def "foo" i32 [(i1, "x")] $ do
+    x <- arg "x"
+    let tr = return $ constant i32 1
+    let fl = return $ constant i32 2
+    ife i32 x tr fl
 
 testFor :: LLVM ()
 testFor = do
@@ -137,6 +144,7 @@ testPair = do
 gfunctions = [
     (testSimple     , "simple"),
     (testMultiple   , "multiple"),
+    (testIf         , "if"),
     (testFor        , "for"),
     (testWhile      , "while"),
     (testRecord     , "record"),

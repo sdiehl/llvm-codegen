@@ -175,15 +175,14 @@ cons = ConstantOperand
 -- Casts
 -------------------------------------------------------------------------------
 
-uitofp :: Type -> Operand -> Codegen Operand
-uitofp ty a = instr $ UIToFP a ty []
-
 trunc :: Type -> Operand -> Codegen Operand
 trunc ty a = instr $ Trunc a ty []
 
+-- Integer extension
 zext :: Type -> Operand -> Codegen Operand
 zext ty a = instr $ ZExt a ty []
 
+-- Signed integer extension
 sext :: Type -> Operand -> Codegen Operand
 sext ty a = instr $ SExt a ty []
 
@@ -195,6 +194,9 @@ fptosi ty a = instr $ FPToSI a ty []
 
 sitofp:: Type -> Operand -> Codegen Operand
 sitofp ty a = instr $ SIToFP a ty []
+
+uitofp :: Type -> Operand -> Codegen Operand
+uitofp ty a = instr $ UIToFP a ty []
 
 fptrunc :: Type -> Operand -> Codegen Operand
 fptrunc ty a = instr $ FPTrunc a ty []

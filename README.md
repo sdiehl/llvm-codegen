@@ -107,8 +107,8 @@ Functions
 ```cpp
 int foo(int x) {
   int32_t a = 1;
-  int64_t b = 1;
-  return (a+b);
+  int64_t b = 1000;
+  return a+b;
 }
 ```
 
@@ -199,7 +199,7 @@ entry:
 }
 ```
 
-The ``mem2reg`` optimizerz pass is always able to eliminate redudent stack allocations emitted using this
+The ``mem2reg`` optimizer pass is always able to eliminate redudent stack allocations emitted using this
 approach to local variables.
 
 For Loops
