@@ -68,7 +68,7 @@ main = do
   return ()
 ```
 
-With the following output:
+With the following output ( implicit constant folding is performed ).
 
 ```llvm
 ; ModuleID = 'simple module'
@@ -307,7 +307,7 @@ int inl(void *p) {
   return q->l;
 }
 
-float inl(void *p) {
+float inr(void *p) {
   pair *q = p ;
   return q->r;
 }

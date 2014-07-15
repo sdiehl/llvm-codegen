@@ -21,12 +21,18 @@ import LLVM.Codegen.Pipeline
 import LLVM.Codegen.Execution
 
 import LLVM.General.PrettyPrint
+import qualified LLVM.General.AST as AST
 
-data CodegenErr = CodegenFail String
+-------------------------------------------------------------------------------
+-- Codegen Error Hoisting
+-------------------------------------------------------------------------------
+
+data CodegenErr = CodegenFail String | ExecFail String
    deriving (Show, Typeable)
 
 instance Exception CodegenErr
 
+runLLVMIO :: AST.Module -> LLVM a -> IO (AST.Module)
 runLLVMIO mod m = case runLLVM mod m of
   Left err -> do
     throw (CodegenFail err)

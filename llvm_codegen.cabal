@@ -53,8 +53,8 @@ library
       base              >= 4.6 && <4.7
     , containers        >= 0.5 && <0.6
     , vector            >= 0.10
-    , llvm-general      >= 3.3.8.2
-    , llvm-general-pure >= 3.3.8.2
+    , llvm-general      == 3.3.8.2
+    , llvm-general-pure == 3.3.8.2
     , libffi            == 0.1
     , unix              >= 2.4.0.2
     , transformers      >= 0.3
