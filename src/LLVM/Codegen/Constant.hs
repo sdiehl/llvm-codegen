@@ -43,10 +43,10 @@ cundef :: Type -> C.Constant
 cundef = C.Undef
 
 cstruct :: [C.Constant] -> C.Constant
-cstruct values = C.Struct False values
+cstruct values = C.Struct Nothing False values
 
 cstructpack :: [C.Constant] -> C.Constant
-cstructpack values = C.Struct True values
+cstructpack values = C.Struct Nothing False values
 
 carray :: Type -> [C.Constant] -> C.Constant
 carray ty values = C.Array ty values

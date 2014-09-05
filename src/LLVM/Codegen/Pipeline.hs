@@ -100,7 +100,7 @@ execStage exec ctx = do
 showStage :: Stage
 showStage (ctx, m, settings) = do
   trace settings "Showing Module..."
-  s <- moduleString m
+  s <- moduleLLVMAssembly m
   putStrLn s
   return $ Right (ctx, m, settings)
 
@@ -109,7 +109,7 @@ showAsmStage :: Stage
 showAsmStage (ctx, m, settings) = do
   trace settings "Showing Assembly..."
   asm <- runErrorT $ withDefaultTargetMachine $ \tm -> do
-    gen <- runErrorT $ moduleAssembly tm m
+    gen <- runErrorT $ moduleTargetAssembly tm m
     case  gen of
       Left err -> throwError (strMsg "Error building target machine.")
       Right a -> return a
@@ -153,7 +153,7 @@ runPipeline_ pline settings ast = do
       final <- res (ctx, m, settings)
       case final of
         Left err -> throwError (strMsg err)
-        Right x -> moduleString m
+        Right x -> moduleLLVMAssembly m
   return (either id id out)
 
 -------------------------------------------------------------------------------
