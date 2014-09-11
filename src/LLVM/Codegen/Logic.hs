@@ -27,7 +27,7 @@ module LLVM.Codegen.Logic (
   imin,
   imax,
 
-  debug,
+  printf,
   debugInt,
   debugFloat,
 
@@ -333,10 +333,10 @@ imax a b = do
 -------------------------------------------------------------------------------
 
 -- | Wrapper for debugging with printf
-debug :: String -> [Operand] -> Codegen Operand
-debug str vals = do
+printf :: String -> [Operand] -> Codegen Operand
+printf str vals = do
   addGlobal defn
-  addGlobal printf
+  addGlobal cprintf
 
   fmt <- gep (global strnm) [zero, zero]
   call (fn "printf") (fmt : vals)
@@ -356,9 +356,9 @@ debug str vals = do
 debugInt :: String -> Operand -> Codegen Operand
 debugInt fmt val = do
   cval <- zext i64 val
-  debug fmt [cval]
+  printf fmt [cval]
 
 debugFloat :: String -> Operand -> Codegen Operand
 debugFloat fmt val = do
   cval <- fpext double val
-  debug fmt [cval]
+  printf fmt [cval]

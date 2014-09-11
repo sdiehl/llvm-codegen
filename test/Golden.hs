@@ -116,10 +116,10 @@ testIntrinsic = do
     let x = constant f64 2
     call (fn llsqrt) [x]
 
-testDebug :: LLVM ()
-testDebug =
+testPrintf :: LLVM ()
+testPrintf =
   def "main" i32 [] $
-    debug "%i" [x]
+    printf "%i" [x]
   where
     x = constant i32 42
 
@@ -132,7 +132,7 @@ testFull =
     for i inc cond $ \ix ->
       for j inc cond $ \jx -> do
         sum <- add ix jx
-        debug "%i" [sum]
+        printf "%i" [sum]
     return zero
 
   where
@@ -154,8 +154,8 @@ testPair = do
     tup <- mkPair i32 f32 a b
     l <- inl tup
     r <- inr tup
-    debug "%i" [l]
-    debug "%f" [r]
+    printf "%i" [l]
+    printf "%f" [r]
   where
      a = constant i32 100
      b = constant f32 200
@@ -174,7 +174,7 @@ gfunctions = [
     (testRecord     , "record"),
     (testComparison , "comparison"),
     (testIntrinsic  , "intrinsic"),
-    (testDebug      , "debug"),
+    (testPrintf     , "printf"),
     (testFull       , "full"),
     (testLoopnest   , "loopnest"),
     (testPair       , "pair")

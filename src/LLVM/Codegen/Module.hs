@@ -13,7 +13,7 @@ module LLVM.Codegen.Module (
   external,
   intrinsic,
   llintrinsic,
-  printf,
+  cprintf,
 ) where
 
 import Control.Applicative
@@ -101,8 +101,8 @@ intrinsic retty label argtys =
      }
 
 -- | Definition for C printf, hardcoded definition.
-printf :: Definition
-printf = GlobalDefinition $
+cprintf :: Definition
+cprintf = GlobalDefinition $
   functionDefaults {
     name        = Name "printf"
   , parameters  =

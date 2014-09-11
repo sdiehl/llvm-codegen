@@ -82,22 +82,6 @@ entry:
 attributes #0 = { nounwind readnone }
 ```
 
-Low Level Features
-==================
-
-Pipeline
---------
-
-TODO
-
-Execution
-----------
-
-TODO
-
-LibFFI
-------
-
 Language Constructions
 ======================
 
@@ -398,6 +382,22 @@ TODO
 
 Garbage Collection
 ------------------
+
+Low Level Features
+==================
+
+Pipeline
+--------
+
+TODO
+
+Execution
+----------
+
+TODO
+
+LibFFI
+------
 
 
 License
