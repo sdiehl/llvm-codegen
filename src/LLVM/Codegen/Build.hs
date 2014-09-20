@@ -12,7 +12,7 @@ module LLVM.Codegen.Build (
 
 import Data.Data
 import System.Exit
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Exception
 
 import LLVM.Codegen

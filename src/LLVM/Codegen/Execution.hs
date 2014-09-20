@@ -11,7 +11,7 @@ module LLVM.Codegen.Execution (
   Lower(..)
 ) where
 
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.Reader
 
 import Foreign.Ptr

@@ -40,7 +40,7 @@ module LLVM.Codegen.Logic (
 
 import Control.Monad (forM, zipWithM_ )
 
-import Control.Monad.Error
+import Control.Monad.Except
 
 import LLVM.Codegen.Builder
 import LLVM.Codegen.Module

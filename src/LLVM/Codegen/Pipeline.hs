@@ -23,7 +23,7 @@ module LLVM.Codegen.Pipeline (
 
 import Data.List
 
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.Reader
 
 import LLVM.General.Target
@@ -77,7 +77,7 @@ verifyStage :: Stage
 verifyStage (ctx, m, settings) = do
   trace settings "Verifying Module..."
   withPassManager defaultCuratedPassSetSpec $ \pm -> do
-    valid <- runErrorT $ verify m
+    valid <- runExceptT $ verify m
     case valid of
       Left err -> throwError (strMsg $ "No verify: " ++ err)
       Right x -> return $ Right (ctx, m, settings)
@@ -108,8 +108,8 @@ showStage (ctx, m, settings) = do
 showAsmStage :: Stage
 showAsmStage (ctx, m, settings) = do
   trace settings "Showing Assembly..."
-  asm <- runErrorT $ withDefaultTargetMachine $ \tm -> do
-    gen <- runErrorT $ moduleTargetAssembly tm m
+  asm <- runExceptT $ withDefaultTargetMachine $ \tm -> do
+    gen <- runExceptT $ moduleTargetAssembly tm m
     case  gen of
       Left err -> throwError (strMsg "Error building target machine.")
       Right a -> return a
@@ -134,7 +134,7 @@ optimizeStage level (ctx, m, settings) = do
 runPipeline :: Pipeline -> Settings -> AST.Module -> IO (Either String AST.Module)
 runPipeline pline settings ast = do
   withContext $ \ctx ->
-    runErrorT $ withModuleFromAST ctx ast $ \m -> do
+    runExceptT $ withModuleFromAST ctx ast $ \m -> do
       -- fold the the list of Stages into a single function,
       -- sequentially from left to right
       let res = foldl1' compose pline
@@ -148,7 +148,7 @@ runPipeline pline settings ast = do
 runPipeline_ :: Pipeline -> Settings -> AST.Module -> IO String
 runPipeline_ pline settings ast = do
   out <- withContext $ \ctx ->
-    runErrorT $ withModuleFromAST ctx ast $ \m -> do
+    runExceptT $ withModuleFromAST ctx ast $ \m -> do
       let res = foldl1' compose pline
       final <- res (ctx, m, settings)
       case final of
