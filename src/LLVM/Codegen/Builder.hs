@@ -39,7 +39,7 @@ import Data.List
 import Data.Function
 import Data.String
 
-import Control.Monad.Except
+import Control.Monad.Error
 import Control.Monad.Identity
 import Control.Monad.Trans
 import Control.Monad.State
@@ -70,7 +70,7 @@ data BlockState
   , term  :: Maybe (Named Terminator)       -- ^ Block terminator
   } deriving Show
 
-newtype Codegen a = Codegen { runCodegen :: StateT CodegenState (ExceptT String Identity) a }
+newtype Codegen a = Codegen { runCodegen :: StateT CodegenState (ErrorT String Identity) a }
   deriving (Functor, Applicative, Monad, MonadState CodegenState, MonadError String)
 
 codeFail :: String -> Codegen ()
@@ -93,7 +93,7 @@ evalCodegen m = do
 
 -- | Evaluate the Codegen monad returning the state accrued.
 execCodegen :: [(String, Operand)] -> Codegen a -> Either String CodegenState
-execCodegen vars m = runIdentity $ runExceptT $ (execStateT (runCodegen m) (emptyCodegen { symtab = vars }))
+execCodegen vars m = runIdentity $ runErrorT $ (execStateT (runCodegen m) (emptyCodegen { symtab = vars }))
 
 makeBlock :: (Name, BlockState) -> BasicBlock
 makeBlock (l, (BlockState _ s t)) = BasicBlock l s (maketerm t)

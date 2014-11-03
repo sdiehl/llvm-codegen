@@ -12,8 +12,8 @@ module LLVM.Codegen.Build (
 
 import Data.Data
 import System.Exit
-import Control.Monad.Except
-import Control.Exception
+import Control.Monad.Error
+import Control.Error
 
 import LLVM.Codegen
 import LLVM.Codegen.Utils
@@ -30,7 +30,7 @@ import qualified LLVM.General.AST as AST
 data CodegenErr = CodegenFail String | ExecFail String
    deriving (Show, Typeable)
 
-instance Exception CodegenErr
+instance Errorion CodegenErr
 
 runLLVMIO :: AST.Module -> LLVM a -> IO (AST.Module)
 runLLVMIO mod m = case runLLVM mod m of
